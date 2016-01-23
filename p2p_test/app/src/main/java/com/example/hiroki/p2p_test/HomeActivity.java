@@ -53,8 +53,8 @@ public class HomeActivity extends AppCompatActivity {
         // 適当に通信してみる
 
         // 切断
-        Button disconnetBtn = (Button) findViewById(R.id.button5);
-        disconnetBtn.setOnClickListener(new View.OnClickListener() {
+        Button disconnectBtn = (Button) findViewById(R.id.button5);
+        disconnectBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mReceiver.disconnect();
@@ -72,11 +72,7 @@ public class HomeActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.d("pause", "pause2");
-
-        if (mReceiver != null) {
-            mReceiver.close();
-            mReceiver = null;
-        }
+        mReceiver.close();
     }
 
     @Override
@@ -95,11 +91,13 @@ public class HomeActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.d("resume", "resume2");
+        mReceiver.start();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.d("destroy", "destroy2");
+        mReceiver = null;
     }
 }

@@ -33,17 +33,14 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         super();
 
         mContext = c;
-        mManager = (WifiP2pManager) c.getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(c, c.getMainLooper(), null);
+        mLogger = logger;
+        mManager = (WifiP2pManager) mContext.getSystemService(Context.WIFI_P2P_SERVICE);
+        mChannel = mManager.initialize(mContext, mContext.getMainLooper(), null);
         mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-
-        mLogger = logger;
-        mLogger.add("start");
-        start();
     }
 
     public boolean isEnabled() {
@@ -54,6 +51,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         if (!isEnabled()) {
             return false;
         }
+
         mContext.registerReceiver(this, mIntentFilter);
         return true;
     }
