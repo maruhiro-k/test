@@ -25,4 +25,17 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
 
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/textView3"
+        android:layout_below="@+id/textView2"
+        android:layout_marginTop="40dp"
+        android:layout_alignParentEnd="true"
+        android:inputType="textMultiLine"
+        android:lines="10"
+        android:scrollIndicators="right"
+        android:scrollbars="vertical" />
+
 </RelativeLayout>
