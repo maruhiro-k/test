@@ -74,7 +74,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
             @Override
             public void onFailure(int reasonCode) {
-                mLogger.add("discover: fail: " + String.format("%d", reasonCode));
+                mLogger.add("discover: fail: " + errStr(reasonCode));
             }
         });
     }
@@ -84,6 +84,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         String action = intent.getAction();
 
         if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
+            mLogger.add("WIFI_STATE_CHANGED_ACTION");
+
             int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
             if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                 // Wifi P2P is enabled
@@ -95,6 +97,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
         }
         else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
+            mLogger.add("WIFI_PEERS_CHANGED_ACTION");
+
             // Call WifiP2pManager.requestPeers() to get a list of current peers
             if (mManager != null) {
                 mManager.requestPeers(mChannel, new WifiP2pManager.PeerListListener() {
@@ -105,10 +109,12 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                             mLogger.add("not found peers: " + peers.toString());
                             return;
                         }
-                        mLogger.add("found peers: " + peers.toString());
+
+                        WifiP2pDevice dev = decices.iterator().next();
+                        mLogger.add("found peers: " + dev.deviceName);
 
                         WifiP2pConfig config = new WifiP2pConfig();
-                        config.deviceAddress = decices.iterator().next().deviceAddress;
+                        config.deviceAddress = dev.deviceAddress;
                         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
 
                             @Override
@@ -120,7 +126,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                             @Override
                             public void onFailure(int reason) {
                                 //failure logic
-                                mLogger.add("connect: fail: " + String.format("%d", reason));
+                                mLogger.add("connect: fail: " + errStr(reason));
                             }
                         });
 
@@ -143,10 +149,23 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             }
         }
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
+            mLogger.add("WIFI_CONNECTION_CHANGED_ACTION");
             // Respond to new connection or disconnections
         }
         else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
+            mLogger.add("WIFI_THIS_DEVICE_CHANGED_ACTION");
             // Respond to this device's wifi state changing
         }
+    }
+
+    static public String errStr(int code) {
+        if (code == WifiP2pManager.P2P_UNSUPPORTED)
+            return "[P2P_UNSUPPORTED]";
+        else if (code == WifiP2pManager.ERROR)
+            return "[ERROR]";
+        else if (code == WifiP2pManager.BUSY)
+            return "[BUSY]";
+        else
+            return "[unknown]";
     }
 }

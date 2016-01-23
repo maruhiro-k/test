@@ -30,7 +30,7 @@ public class HomeActivity extends AppCompatActivity {
                         Log.d("HomeActivity", log);
                         TextView t = (TextView) HomeActivity.this.findViewById(R.id.textView3);
                         t.setMovementMethod(ScrollingMovementMethod.getInstance());
-                        t.append(++num + ":" + log + "\n");
+                        t.append(++num + ": " + log + "\n");
                     }
                 });
 
