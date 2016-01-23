@@ -1,6 +1,5 @@
 package com.example.hiroki.p2p_test.p2p;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,10 +8,11 @@ import android.content.pm.PackageManager;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
-import android.widget.Toast;
 
+import java.net.InetAddress;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -23,6 +23,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     Context mContext;
     Collection<WifiP2pDevice> mDecices;
     LogAction mLogger;
+    ServerSocket ss;
+    ClientSocket cs;
 
 
     public interface LogAction {
@@ -41,6 +43,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        ss = new ServerSocket();
+        ss.execute();
     }
 
     public boolean isEnabled() {
@@ -58,6 +63,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
     public void close() {
         mContext.unregisterReceiver(this);
+        if (ss != null) {
+            ss.close();
+        }
     }
 
     public void search() {
@@ -90,18 +98,47 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             return;
         }
 
-        WifiP2pDevice dev = mDecices.iterator().next();
+        final WifiP2pDevice dev = mDecices.iterator().next();
 
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = dev.deviceAddress;
 
         mLogger.add("begin connect: " + dev.deviceName);
+        Log.d("test", dev.toString());
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
                 //success logic
                 mLogger.add("connect success");
+                /*
+                if (ss != null) {
+                    ss.close(new SocketBase.CloseListener() {
+                        @Override
+                        public void onClosed(SocketBase s) {
+                            cs = new ClientSocket();
+                            cs.execute(dev.deviceAddress);
+                        }
+                    });
+                }
+                */
+                mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener() {
+                    @Override
+                    public void onConnectionInfoAvailable(WifiP2pInfo info) {
+                        mLogger.add(info.toString());
+                        final InetAddress address = info.groupOwnerAddress;
+                        //socket communication
+                        if (ss != null) {
+                            ss.close(new SocketBase.CloseListener() {
+                                @Override
+                                public void onClosed(SocketBase s) {
+                                    cs = new ClientSocket();
+                                    cs.execute(address);
+                                }
+                            });
+                        }
+                    }
+                });
             }
 
             @Override
@@ -110,6 +147,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 mLogger.add("connect: fail: " + errStr(reason));
             }
         });
+
+        // connectした側がクライアントになるのか
+        //
     }
 
     public void disconnect() {
