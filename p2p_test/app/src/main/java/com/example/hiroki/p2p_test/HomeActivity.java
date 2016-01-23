@@ -19,25 +19,45 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        Button btn = (Button) findViewById(R.id.button2);
-        btn.setOnClickListener(new View.OnClickListener() {
+        mReceiver = new WiFiDirectBroadcastReceiver(HomeActivity.this, new WiFiDirectBroadcastReceiver.LogAction() {
+            int num = 0;
+
+            @Override
+            public void add(String log) {
+                Log.d("HomeActivity", log);
+                TextView t = (TextView) HomeActivity.this.findViewById(R.id.textView3);
+                t.setMovementMethod(ScrollingMovementMethod.getInstance());
+                t.append(++num + ": " + log + "\n");
+            }
+        });
+
+        // 検索
+        Button searchBtn = (Button) findViewById(R.id.button2);
+        searchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mReceiver = new WiFiDirectBroadcastReceiver(HomeActivity.this, new WiFiDirectBroadcastReceiver.LogAction() {
-                    int num = 0;
-                    @Override
-                    public void add(String log) {
-                        Log.d("HomeActivity", log);
-                        TextView t = (TextView) HomeActivity.this.findViewById(R.id.textView3);
-                        t.setMovementMethod(ScrollingMovementMethod.getInstance());
-                        t.append(++num + ": " + log + "\n");
-                    }
-                });
-
-                // 検索
                 mReceiver.search();
-                // 接続
-                // 適当に通信してみる
+            }
+        });
+
+        // 検索と接続のボタンを分離
+        // 接続
+        Button connectBtn = (Button) findViewById(R.id.button4);
+        connectBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mReceiver.connect();
+            }
+        });
+
+        // 適当に通信してみる
+
+        // 切断
+        Button disconnetBtn = (Button) findViewById(R.id.button5);
+        disconnetBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mReceiver.disconnect();
             }
         });
     }

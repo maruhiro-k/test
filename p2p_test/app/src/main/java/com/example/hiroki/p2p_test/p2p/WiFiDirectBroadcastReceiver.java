@@ -14,12 +14,14 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     WifiP2pManager mManager;
     WifiP2pManager.Channel mChannel;
     IntentFilter mIntentFilter;
     Context mContext;
+    Collection<WifiP2pDevice> mDecices;
     LogAction mLogger;
 
 
@@ -62,9 +64,10 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
     public void search() {
         if (!isEnabled()) {
-            mLogger.add("P2P Disabled!");
+            mLogger.add("P2P Disabled! (search)");
             return;
         }
+        mLogger.add("begin discover");
 
         mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
@@ -79,9 +82,47 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         });
     }
 
+    public void connect() {
+        if (!isEnabled()) {
+            mLogger.add("P2P Disabled! (connect)");
+            return;
+        }
+        if (mDecices.isEmpty()) {
+            mLogger.add("device is nothing");
+            return;
+        }
+
+        WifiP2pDevice dev = mDecices.iterator().next();
+
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = dev.deviceAddress;
+
+        mLogger.add("begin connect: " + dev.deviceName);
+        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+
+            @Override
+            public void onSuccess() {
+                //success logic
+                mLogger.add("connect success");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                //failure logic
+                mLogger.add("connect: fail: " + errStr(reason));
+            }
+        });
+    }
+
+    public void disconnect() {
+        mLogger.add("begin disconnect");
+        mLogger.add("not implemented!");
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
+        mLogger.add("action: " + action);
 
         if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
             mLogger.add("WIFI_STATE_CHANGED_ACTION");
@@ -104,32 +145,17 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 mManager.requestPeers(mChannel, new WifiP2pManager.PeerListListener() {
                     @Override
                     public void onPeersAvailable(WifiP2pDeviceList peers) {
-                        Collection<WifiP2pDevice> decices = peers.getDeviceList();
-                        if (decices.isEmpty()) {
-                            mLogger.add("not found peers: " + peers.toString());
+                        mDecices = peers.getDeviceList();
+                        if (mDecices.isEmpty()) {
+                            mLogger.add("not found peers");
                             return;
                         }
 
-                        WifiP2pDevice dev = decices.iterator().next();
-                        mLogger.add("found peers: " + dev.deviceName);
-
-                        WifiP2pConfig config = new WifiP2pConfig();
-                        config.deviceAddress = dev.deviceAddress;
-                        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
-
-                            @Override
-                            public void onSuccess() {
-                                //success logic
-                                mLogger.add("connect success");
-                            }
-
-                            @Override
-                            public void onFailure(int reason) {
-                                //failure logic
-                                mLogger.add("connect: fail: " + errStr(reason));
-                            }
-                        });
-
+                        Iterator<WifiP2pDevice> it = mDecices.iterator();
+                        while (it.hasNext()) {
+                            WifiP2pDevice dev = it.next();
+                            mLogger.add("found peers: " + dev.deviceName);
+                        }
                     }
                 });
 
