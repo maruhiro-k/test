@@ -38,4 +38,20 @@
         android:layout_below="@+id/clt_btn"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SEND"
+        android:id="@+id/send_btn"
+        android:layout_alignTop="@+id/srv_btn"
+        android:layout_alignEnd="@+id/hintText" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CLOSE"
+        android:id="@+id/close_btn"
+        android:layout_below="@+id/send_btn"
+        android:layout_alignParentEnd="true" />
 </RelativeLayout>

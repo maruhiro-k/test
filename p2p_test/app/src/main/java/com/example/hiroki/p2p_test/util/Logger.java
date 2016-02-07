@@ -17,7 +17,7 @@ public class Logger {
     }
 
     public void add(String log) {
-        Log.d(tag, log);
+        Log.d(tag, log + " [L]");
         if (t != null) {
             t.append(++num + ": " + log + "\n");
         }

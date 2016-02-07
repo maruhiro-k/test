@@ -21,6 +21,7 @@ public class SockActivity extends AppCompatActivity {
     static final int PORT = 18888;
     ServerSocket ss;
     ClientSocket cs;
+    AsyncSocket as;
     AsyncSocket.SocketListener mAction;
     Logger logger = null;
 
@@ -72,7 +73,7 @@ public class SockActivity extends AppCompatActivity {
 
             @Override
             public void onRecv(byte[] data) {
-                logger.add("onRecv: " + data.length);
+                logger.add("onRecv: " + data);
             }
 
             @Override
@@ -92,7 +93,8 @@ public class SockActivity extends AppCompatActivity {
                     public void onAccept(AsyncSocket s) {
                         logger.add("onAccept: " + s);
                         if (s != null) {
-                            s.start(mAction);
+                            as = s;
+                            as.start(mAction);
                         }
                     }
                 });
@@ -107,13 +109,40 @@ public class SockActivity extends AppCompatActivity {
                 cs = new ClientSocket();
                 cs.connect(host, PORT, new ClientSocket.ConnectListener() {
                     @Override
-                    public void onConnect(AsyncSocket s, boolean result) {
+                    public void onConnect(boolean result) {
                         logger.add("onConnect: " + result);
-                        if (s != null) {
-                            s.start(mAction);
+                        if (result) {
+                            as = cs;
+                            as.start(mAction);
                         }
                     }
                 });
+            }
+        });
+
+        Button send_btn = (Button) findViewById(R.id.send_btn);
+        send_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                logger.add("push send");
+
+                if (as != null) {
+                    byte[] data = {1, 2, 3, 4, 5, 0, -128};
+                    as.send(data);
+                    logger.add("send: " + data);
+                }
+            }
+        });
+
+        Button close_btn = (Button) findViewById(R.id.close_btn);
+        close_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                logger.add("push close");
+
+                if (as != null) {
+                    as.close();
+                }
             }
         });
     }

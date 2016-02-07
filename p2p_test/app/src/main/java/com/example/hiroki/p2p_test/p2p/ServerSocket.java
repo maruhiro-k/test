@@ -22,14 +22,14 @@ public class ServerSocket {
                     return s0.accept();
                 }
                 catch (IOException e) {
-                    Log.e("server", e.getMessage());
+                    Log.d("server", e.getMessage());
                     return null;
                 }
             }
 
             @Override
             protected void onPostExecute(Socket s) {
-                Log.e("server", "accept: " + s);
+                Log.d("server", "accept: " + s);
                 if (listener != null) {
                     listener.onAccept(new AsyncSocket(s));
                 }
@@ -43,7 +43,7 @@ public class ServerSocket {
                 s0.close();
             }
         } catch (IOException e) {
-            Log.e("close", e.getMessage());
+            Log.d("close", e.getMessage());
         }
     }
 

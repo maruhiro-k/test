@@ -35,13 +35,13 @@ public class ClientSocket extends AsyncSocket {
             protected void onPostExecute(Boolean result) {
                 Log.d("ClientSocket", "connect: " + result);
                 if (listener != null) {
-                    listener.onConnect(ClientSocket.this, result);
+                    listener.onConnect(result);
                 }
             }
         }.execute(new InetSocketAddress(host, port));
     }
 
     public interface ConnectListener {
-        void onConnect(AsyncSocket s, boolean result);
+        void onConnect(boolean result);
     }
 }
