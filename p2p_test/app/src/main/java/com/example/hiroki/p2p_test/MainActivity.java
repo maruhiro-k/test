@@ -31,6 +31,16 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        Button sock_btn = (Button) findViewById(R.id.sock_btn);
+        sock_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), SockActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
 /*
         // input name
         final EditText editText = new EditText(MainActivity.this);

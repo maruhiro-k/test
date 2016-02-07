@@ -4,54 +4,50 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
  * Created by hiroki on 2016/01/23.
  */
-public class ServerSocket extends SocketBase {
-    static final int PORT = 8888;
+public class ServerSocket {
     private java.net.ServerSocket s0;
 
-    @Override
-    protected Object doInBackground(Object[] params) {
-        try {
-            s0 = new java.net.ServerSocket(PORT);
-            Log.d("accept", "begin accept");
-            Socket client = s0.accept();
-            Log.d("accept", "end accept: " + client);
-
-            InputStream in = client.getInputStream();
-            byte buf[] = new byte[1024];
-            while (in.read(buf) > 0) {
-                String str = new String(buf, "UTF-8");
-                Log.d("read server", str + "\n" + buf.toString());
+    public void accept(int port, final AcceptListener listener) {
+        new AsyncTask<Integer, Void, Socket>() {
+            @Override
+            protected Socket doInBackground(Integer... params) {
+                try {
+                    s0 = new java.net.ServerSocket(params[0]);
+                    return s0.accept();
+                }
+                catch (IOException e) {
+                    Log.e("server", e.getMessage());
+                    return null;
+                }
             }
-            in.close();
 
-            OutputStream out = client.getOutputStream();
-            out.write("answer grea".getBytes("UTF-8"));
-            out.close();
-        }
-        catch (IOException e) {
-            Log.e("server", e.getMessage());
-        }
-        s0 = null;
-        Log.d("test", "end");
-        return null;
+            @Override
+            protected void onPostExecute(Socket s) {
+                Log.e("server", "accept: " + s);
+                if (listener != null) {
+                    listener.onAccept(new AsyncSocket(s));
+                }
+            }
+        }.execute(port);
     }
 
     public void close() {
-        if (s0 != null) {
-            try {
+        try {
+            if (s0 != null) {
                 s0.close();
-                return;
-            } catch (IOException e) {
-                Log.e("close", e.getMessage());
             }
+        } catch (IOException e) {
+            Log.e("close", e.getMessage());
         }
-        cancel(true);
+    }
+
+    public interface AcceptListener {
+        void onAccept(AsyncSocket s);
     }
 }
