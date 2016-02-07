@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.example.hiroki.p2p_test.p2p.AsyncSocket;
 import com.example.hiroki.p2p_test.p2p.ClientSocket;
 import com.example.hiroki.p2p_test.p2p.ServerSocket;
+import com.example.hiroki.p2p_test.util.Logger;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -21,6 +22,7 @@ public class SockActivity extends AppCompatActivity {
     ServerSocket ss;
     ClientSocket cs;
     AsyncSocket.SocketListener mAction;
+    Logger logger = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +31,7 @@ public class SockActivity extends AppCompatActivity {
 
         TextView t = (TextView) findViewById(R.id.hintText);
         t.setMovementMethod(ScrollingMovementMethod.getInstance());
+        logger = new Logger("SockActivity", t);
 
         String mine = "";
         try {
@@ -50,7 +53,7 @@ public class SockActivity extends AppCompatActivity {
         }
         catch (SocketException e) {
         }
-        t.append(mine + "\n");
+        logger.add("mine = " + mine);
 
         final String host;
         if (mine.equals("192.168.1.11")) {
@@ -59,22 +62,22 @@ public class SockActivity extends AppCompatActivity {
         else {
             host = "192.168.1.11";
         }
-        t.append(host + "\n");
+        logger.add("host = " + host);
 
         mAction = new AsyncSocket.SocketListener() {
             @Override
             public void onSend(boolean result) {
-                Log.d("SockActivity", "onSend: " + result);
+                logger.add("onSend: " + result);
             }
 
             @Override
             public void onRecv(byte[] data) {
-                Log.d("SockActivity", "onRecv: " + data.length);
+                logger.add("onRecv: " + data.length);
             }
 
             @Override
             public void onClose() {
-                Log.d("SockActivity", "onClose");
+                logger.add("onClose");
             }
         };
 
@@ -82,12 +85,12 @@ public class SockActivity extends AppCompatActivity {
         srv_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("SockActivity", "on server");
-
+                logger.add("server.accept: " + PORT);
                 ss = new ServerSocket();
                 ss.accept(PORT, new ServerSocket.AcceptListener() {
                     @Override
                     public void onAccept(AsyncSocket s) {
+                        logger.add("onAccept: " + s);
                         if (s != null) {
                             s.start(mAction);
                         }
@@ -99,12 +102,13 @@ public class SockActivity extends AppCompatActivity {
         clt_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("SockActivity", "on client");
+                logger.add("client.connect: " + host + ":" + PORT);
 
                 cs = new ClientSocket();
                 cs.connect(host, PORT, new ClientSocket.ConnectListener() {
                     @Override
                     public void onConnect(AsyncSocket s, boolean result) {
+                        logger.add("onConnect: " + result);
                         if (s != null) {
                             s.start(mAction);
                         }
