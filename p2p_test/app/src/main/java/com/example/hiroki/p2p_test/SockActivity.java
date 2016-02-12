@@ -71,7 +71,10 @@ public class SockActivity extends AppCompatActivity {
 
             @Override
             public void onRecv(byte[] data) {
-                logger.add("onRecv: " + data);
+                logger.add("onRecv: " + data.length);
+                for (int i=0; i<data.length; ++i) {
+                    logger.add("onRecv: " + i + ": " + data[i]);
+                }
             }
 
             @Override
@@ -85,6 +88,7 @@ public class SockActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 logger.add("server.accept: " + PORT);
+
                 ss = new ServerSocket();
                 ss.addLogger(logger);
                 ss.accept(PORT, new ServerSocket.AcceptListener() {
@@ -125,7 +129,6 @@ public class SockActivity extends AppCompatActivity {
         send_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                logger.add("push send: " + as);
                 if (as != null) {
                     byte[] data = {1, 2, 3, 4, 5, 0, -128};
                     logger.add("send: " + data);
@@ -134,22 +137,10 @@ public class SockActivity extends AppCompatActivity {
             }
         });
 
-        Button recv_btn = (Button) findViewById(R.id.recv_btn);
-        recv_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                logger.add("push recv: " + as);
-                if (as != null) {
-                    as.recv();
-                }
-            }
-        });
-
         Button close_btn = (Button) findViewById(R.id.close_btn);
         close_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                logger.add("push close");
                 if (as != null) {
                     as.close();
                 }
@@ -160,7 +151,6 @@ public class SockActivity extends AppCompatActivity {
         aive_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                logger.add("push alive");
                 if (as != null) {
                     logger.add("alive = " + as.isConnected());
                 }
