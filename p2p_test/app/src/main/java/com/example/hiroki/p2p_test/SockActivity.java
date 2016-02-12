@@ -84,6 +84,11 @@ public class SockActivity extends AppCompatActivity {
             public void onClick(View v) {
                 logger.add("server.accept: " + PORT);
 
+                if (ss != null) {
+                    ss.close();
+                    ss = null;
+                }
+
                 ss = new ServerSocket();
                 ss.addLogger(logger);
                 ss.accept(PORT, new ServerSocket.AcceptListener() {
