@@ -1,15 +1,11 @@
 package com.example.hiroki.p2p_test.p2p;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-/**
- * Created by hiroki on 2016/02/08.
- */
 public class ClientSocket extends AsyncSocket {
 
     public ClientSocket() {
@@ -33,7 +29,6 @@ public class ClientSocket extends AsyncSocket {
 
             @Override
             protected void onPostExecute(Boolean result) {
-                mLogger.add("connect onPostExecute: " + result);
                 if (listener != null) {
                     listener.onConnect(result);
                 }

@@ -1,7 +1,6 @@
 package com.example.hiroki.p2p_test.p2p;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.example.hiroki.p2p_test.util.Logger;
 
@@ -9,10 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Arrays;
 
-/**
- * Created by hiroki on 2016/02/08.
- */
 public class AsyncSocket {
     Socket s;
     SocketListener mListener;

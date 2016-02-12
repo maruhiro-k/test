@@ -5,9 +5,6 @@ import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.widget.TextView;
 
-/**
- * Created by hiroki on 2016/02/08.
- */
 public class Logger {
     String tag;
     Handler h;

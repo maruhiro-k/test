@@ -1,17 +1,12 @@
 package com.example.hiroki.p2p_test.p2p;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.example.hiroki.p2p_test.util.Logger;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 
-/**
- * Created by hiroki on 2016/01/23.
- */
 public class ServerSocket {
     private java.net.ServerSocket s0;
     Logger mLogger;
@@ -37,7 +32,6 @@ public class ServerSocket {
 
             @Override
             protected void onPostExecute(Socket s) {
-                mLogger.add("acceot onPostExecute: " + s);
                 if (listener != null) {
                     AsyncSocket as = new AsyncSocket(s);
                     as.addLogger(mLogger);

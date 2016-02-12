@@ -1,9 +1,7 @@
 package com.example.hiroki.p2p_test;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -16,6 +14,8 @@ import com.example.hiroki.p2p_test.util.Logger;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.Arrays;
+import java.util.Enumeration;
 
 public class SockActivity extends AppCompatActivity {
     static final int PORT = 18888;
@@ -34,11 +34,11 @@ public class SockActivity extends AppCompatActivity {
 
         String mine = "";
         try {
-            java.util.Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 
             while (interfaces.hasMoreElements()) {
                 NetworkInterface network = interfaces.nextElement();
-                java.util.Enumeration<InetAddress> addresses = network.getInetAddresses();
+                Enumeration<InetAddress> addresses = network.getInetAddresses();
 
                 while (addresses.hasMoreElements()) {
                     String address = addresses.nextElement().getHostAddress();
@@ -49,16 +49,14 @@ public class SockActivity extends AppCompatActivity {
                     }
                 }
             }
-        }
-        catch (SocketException e) {
+        } catch (SocketException ignored) {
         }
         logger.add("mine = " + mine);
 
         final String host;
         if (mine.equals("192.168.1.11")) {
             host = "192.168.1.12";
-        }
-        else {
+        } else {
             host = "192.168.1.11";
         }
         logger.add("host = " + host);
@@ -71,10 +69,7 @@ public class SockActivity extends AppCompatActivity {
 
             @Override
             public void onRecv(byte[] data) {
-                logger.add("onRecv: " + data.length);
-                for (int i=0; i<data.length; ++i) {
-                    logger.add("onRecv: " + i + ": " + data[i]);
-                }
+                logger.add("onRecv: " + Arrays.toString(data));
             }
 
             @Override
@@ -131,7 +126,7 @@ public class SockActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (as != null) {
                     byte[] data = {1, 2, 3, 4, 5, 0, -128};
-                    logger.add("send: " + data);
+                    logger.add("send: " + Arrays.toString(data));
                     as.send(data);
                 }
             }
