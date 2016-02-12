@@ -19,49 +19,28 @@ public class AsyncSocket {
         this.s = s;
     }
 
-    public void init(SocketListener listener) {
-        this.mListener = listener;
-    }
-
-    public void recv() {
+    public boolean init(SocketListener listener) {
         if (!isConnected()) {
-            if (mListener != null) {
-                mListener.onClose();
-            }
-            mLogger.add("not started");
-            return;
+            return false;
         }
 
+        this.mListener = listener;
+
+        // 受信開始
         new AsyncTask<Void, byte[], Void>() {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
                     InputStream in = s.getInputStream();
                     byte[] buf = new byte[1024];
-                    try {
-                        while (true) {
-                            mLogger.add("call read");
-                            int sz = in.read(buf);
-                            mLogger.add("read: size=" + sz);
-                            if (sz > 0) {
-                                publishProgress(buf);
-                            }
-                            if (sz == -1) {
-                                break;
-                            }
-                        }
-                    }
-                    catch (IOException e) {
-                        mLogger.add("read error: " + e.getMessage());
-                    }
-                    mLogger.add("recv end");
-                    if (in != null) {
-                        mLogger.add("recv closing");
-                        in.close();
+                    int sz;
+                    while ((sz = in.read(buf)) > 0) {
+                        mLogger.add("read: size=" + sz);
+                        publishProgress(Arrays.copyOfRange(buf, 0, sz));
                     }
                 }
                 catch (IOException e) {
-                    mLogger.add("read2 error: " + e.getMessage());
+                    mLogger.add("read error: " + e.getMessage());
                 }
                 return null;
             }
@@ -69,30 +48,25 @@ public class AsyncSocket {
             @Override
             protected void onPostExecute(Void aVoid) {
                 mLogger.add("recv onPostExecute");
-                if (mListener != null) {
-                    //mListener.onClose();
-                }
+                onClose();
             }
 
             @Override
             protected void onProgressUpdate(byte[]... values) {
-                mLogger.add("recv onProgressUpdate: " + values[0].length);
-                if (mListener != null) {
-                    mListener.onRecv(values[0]);
-                }
+                onRecv(values[0]);
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+        return true;
     }
 
     public void send(byte[] data) {
         if (!isConnected()) {
-            mLogger.add("send error: not connected");
-            if (mListener != null) {
-                mListener.onSend(false);
-            }
+            onSend(false);
             return;
         }
 
+        // 送信
         new AsyncTask<byte[], Void, Boolean>() {
             @Override
             protected Boolean doInBackground(byte[]... params) {
@@ -100,7 +74,6 @@ public class AsyncSocket {
                     OutputStream out = s.getOutputStream();
                     mLogger.add("call write: " + params[0][0] + ", " + params[0].length);
                     out.write(params[0]);
-                    out.close();
                     return Boolean.TRUE;
                 }
                 catch (IOException e) {
@@ -111,10 +84,7 @@ public class AsyncSocket {
 
             @Override
             protected void onPostExecute(Boolean result) {
-                mLogger.add("send onPostExecute: " + result);
-                if (mListener != null) {
-                    mListener.onSend(result);
-                }
+                onSend(result);
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, data.clone());
     }
@@ -122,13 +92,8 @@ public class AsyncSocket {
     public void close() {
         try {
             if (s != null) {
-                mLogger.add("call close");
                 s.close();
-                mLogger.add("called close");
-                if (mListener != null) {
-                    mLogger.add("call onClose");
-                    mListener.onClose();
-                }
+                onClose();
             }
         } catch (IOException e) {
             mLogger.add("close error: " + e.getMessage());
@@ -139,17 +104,38 @@ public class AsyncSocket {
         if (s == null) {
             return false;
         }
-        if (!s.isConnected()) {
+        else if (!s.isConnected()) {
             return false;
         }
-        if (s.isClosed()) {
+        else if (s.isClosed()) {
             return false;
         }
-        return true;
+        else {
+            return true;
+        }
     }
 
     public void addLogger(Logger logger) {
         mLogger = logger;
+    }
+
+    private void onSend(boolean result) {
+        if (mListener != null) {
+            mListener.onSend(result);
+        }
+    }
+
+    private void onRecv(byte[] data) {
+        if (mListener != null) {
+            mListener.onRecv(data);
+        }
+    }
+
+    private void onClose() {
+        s = null;
+        if (mListener != null) {
+            mListener.onClose();
+        }
     }
 
     public interface SocketListener {
