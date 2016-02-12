@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.hiroki.p2p_test.p2p.WiFiDirectBroadcastReceiver;
+import com.example.hiroki.p2p_test.util.Logger;
 
 public class HomeActivity extends AppCompatActivity {
     WiFiDirectBroadcastReceiver mReceiver;
@@ -19,17 +20,8 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        mReceiver = new WiFiDirectBroadcastReceiver(HomeActivity.this, new WiFiDirectBroadcastReceiver.LogAction() {
-            int num = 0;
-
-            @Override
-            public void add(String log) {
-                Log.d("HomeActivity", log);
-                TextView t = (TextView) HomeActivity.this.findViewById(R.id.textView3);
-                t.setMovementMethod(ScrollingMovementMethod.getInstance());
-                t.append(++num + ": " + log + "\n");
-            }
-        });
+        Logger logger = new Logger("SockActivity", (TextView) HomeActivity.this.findViewById(R.id.textView3));
+        mReceiver = new WiFiDirectBroadcastReceiver(HomeActivity.this, logger);
 
         // 検索
         Button searchBtn = (Button) findViewById(R.id.button2);

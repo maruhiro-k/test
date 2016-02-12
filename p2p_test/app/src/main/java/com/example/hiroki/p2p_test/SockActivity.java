@@ -30,9 +30,7 @@ public class SockActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sock);
 
-        TextView t = (TextView) findViewById(R.id.hintText);
-        t.setMovementMethod(ScrollingMovementMethod.getInstance());
-        logger = new Logger("SockActivity", t);
+        logger = new Logger("SockActivity", (TextView) findViewById(R.id.hintText));
 
         String mine = "";
         try {
