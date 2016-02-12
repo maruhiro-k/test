@@ -3,6 +3,8 @@ package com.example.hiroki.p2p_test.p2p;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.example.hiroki.p2p_test.util.Logger;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -12,6 +14,11 @@ import java.net.Socket;
  */
 public class ServerSocket {
     private java.net.ServerSocket s0;
+    Logger mLogger;
+
+    public void addLogger(Logger logger) {
+        mLogger = logger;
+    }
 
     public void accept(int port, final AcceptListener listener) {
         new AsyncTask<Integer, Void, Socket>() {
@@ -19,19 +26,22 @@ public class ServerSocket {
             protected Socket doInBackground(Integer... params) {
                 try {
                     s0 = new java.net.ServerSocket(params[0]);
+                    mLogger.add("call accept");
                     return s0.accept();
                 }
                 catch (IOException e) {
-                    Log.d("server", e.getMessage());
+                    mLogger.add("accept error: " + e.getMessage());
                     return null;
                 }
             }
 
             @Override
             protected void onPostExecute(Socket s) {
-                Log.d("server", "accept: " + s);
+                mLogger.add("acceot onPostExecute: " + s);
                 if (listener != null) {
-                    listener.onAccept(new AsyncSocket(s));
+                    AsyncSocket as = new AsyncSocket(s);
+                    as.addLogger(mLogger);
+                    listener.onAccept(as);
                 }
             }
         }.execute(port);
@@ -43,7 +53,7 @@ public class ServerSocket {
                 s0.close();
             }
         } catch (IOException e) {
-            Log.d("close", e.getMessage());
+            mLogger.add("close error: " + e.getMessage());
         }
     }
 

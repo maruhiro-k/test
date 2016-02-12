@@ -13,6 +13,8 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
+import com.example.hiroki.p2p_test.util.Logger;
+
 import java.net.InetAddress;
 import java.util.Collection;
 import java.util.Iterator;
@@ -23,14 +25,14 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     IntentFilter mIntentFilter;
     Context mContext;
     Collection<WifiP2pDevice> mDecices;
-    LogAction mLogger;
+    Logger mLogger;
 
 
     public interface LogAction {
         public abstract void add(String log);
     }
 
-    public WiFiDirectBroadcastReceiver(Context c, LogAction logger) {
+    public WiFiDirectBroadcastReceiver(Context c, Logger logger) {
         super();
 
         mContext = c;
@@ -172,20 +174,6 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                         }
                     }
                 });
-
-                /*
-                mManager.stopPeerDiscovery(mChannel, new WifiP2pManager.ActionListener() {
-                    @Override
-                    public void onSuccess() {
-                        mLogger.add("stop success");
-                    }
-
-                    @Override
-                    public void onFailure(int reason) {
-                        mLogger.add("stop: fail: " + String.format("%d", reason));
-                    }
-                });
-                */
             }
         }
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {

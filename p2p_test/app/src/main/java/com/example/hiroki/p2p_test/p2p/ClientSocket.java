@@ -22,18 +22,18 @@ public class ClientSocket extends AsyncSocket {
             protected Boolean doInBackground(InetSocketAddress[] params) {
                 try {
                     s.bind(null);
+                    mLogger.add("call connect");
                     s.connect(params[0], 10000);
                     return Boolean.TRUE;
-                }
-                catch (IOException e) {
-                    Log.d("ClientSocket", e.getMessage());
+                } catch (IOException e) {
+                    mLogger.add("connect error: " + e.getMessage());
                     return Boolean.FALSE;
                 }
             }
 
             @Override
             protected void onPostExecute(Boolean result) {
-                Log.d("ClientSocket", "connect: " + result);
+                mLogger.add("connect onPostExecute: " + result);
                 if (listener != null) {
                     listener.onConnect(result);
                 }

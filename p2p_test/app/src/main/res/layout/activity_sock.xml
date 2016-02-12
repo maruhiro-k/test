@@ -53,5 +53,21 @@
         android:text="CLOSE"
         android:id="@+id/close_btn"
         android:layout_below="@+id/send_btn"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignEnd="@+id/hintText" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="recv"
+        android:id="@+id/recv_btn"
+        android:layout_alignTop="@+id/send_btn"
+        android:layout_toStartOf="@+id/send_btn" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="alive"
+        android:id="@+id/alive_btn"
+        android:layout_below="@+id/srv_btn"
+        android:layout_toStartOf="@+id/send_btn" />
 </RelativeLayout>

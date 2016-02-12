@@ -86,18 +86,20 @@ public class SockActivity extends AppCompatActivity {
             public void onClick(View v) {
                 logger.add("server.accept: " + PORT);
                 ss = new ServerSocket();
+                ss.addLogger(logger);
                 ss.accept(PORT, new ServerSocket.AcceptListener() {
                     @Override
                     public void onAccept(AsyncSocket s) {
                         logger.add("onAccept: " + s);
                         if (s != null) {
                             as = s;
-                            as.start(mAction);
+                            as.init(mAction);
                         }
                     }
                 });
             }
         });
+
         Button clt_btn = (Button) findViewById(R.id.clt_btn);
         clt_btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -105,13 +107,14 @@ public class SockActivity extends AppCompatActivity {
                 logger.add("client.connect: " + host + ":" + PORT);
 
                 cs = new ClientSocket();
+                cs.addLogger(logger);
                 cs.connect(host, PORT, new ClientSocket.ConnectListener() {
                     @Override
                     public void onConnect(boolean result) {
                         logger.add("onConnect: " + result);
                         if (result) {
                             as = cs;
-                            as.start(mAction);
+                            as.init(mAction);
                         }
                     }
                 });
@@ -122,12 +125,22 @@ public class SockActivity extends AppCompatActivity {
         send_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                logger.add("push send");
-
+                logger.add("push send: " + as);
                 if (as != null) {
                     byte[] data = {1, 2, 3, 4, 5, 0, -128};
-                    as.send(data);
                     logger.add("send: " + data);
+                    as.send(data);
+                }
+            }
+        });
+
+        Button recv_btn = (Button) findViewById(R.id.recv_btn);
+        recv_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                logger.add("push recv: " + as);
+                if (as != null) {
+                    as.recv();
                 }
             }
         });
@@ -137,9 +150,19 @@ public class SockActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 logger.add("push close");
-
                 if (as != null) {
                     as.close();
+                }
+            }
+        });
+
+        Button aive_btn = (Button) findViewById(R.id.alive_btn);
+        aive_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                logger.add("push alive");
+                if (as != null) {
+                    logger.add("alive = " + as.isConnected());
                 }
             }
         });

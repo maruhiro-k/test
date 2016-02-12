@@ -3,6 +3,8 @@ package com.example.hiroki.p2p_test.p2p;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.example.hiroki.p2p_test.util.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,66 +16,70 @@ import java.net.Socket;
 public class AsyncSocket {
     Socket s;
     SocketListener mListener;
+    Logger mLogger;
 
     AsyncSocket(Socket s) {
         this.s = s;
     }
 
-    public void start(SocketListener listener) {
+    public void init(SocketListener listener) {
+        this.mListener = listener;
+    }
+
+    public void recv() {
         if (!isConnected()) {
             if (mListener != null) {
                 mListener.onClose();
             }
-            Log.d("socket", "not started");
+            mLogger.add("not started");
             return;
         }
 
-        this.mListener = listener;
-
-        Log.d("socket", "async read");
         new AsyncTask<Void, byte[], Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                Log.d("recv", "doInBackground");
                 try {
                     InputStream in = s.getInputStream();
                     byte[] buf = new byte[1024];
-                    Log.d("recv", "InputStream: " + in);
                     try {
                         while (true) {
-                            Log.d("recv", "read");
+                            mLogger.add("call read");
                             int sz = in.read(buf);
+                            mLogger.add("read: size=" + sz);
                             if (sz > 0) {
-                                Log.d("recv", "publishProgress");
                                 publishProgress(buf);
+                            }
+                            if (sz == -1) {
+                                break;
                             }
                         }
                     }
                     catch (IOException e) {
-                        Log.d("socket2", e.getMessage());
+                        mLogger.add("read error: " + e.getMessage());
                     }
-                    Log.d("recv", "end");
+                    mLogger.add("recv end");
                     if (in != null) {
+                        mLogger.add("recv closing");
                         in.close();
                     }
                 }
                 catch (IOException e) {
-                    Log.d("socket1", e.getMessage());
+                    mLogger.add("read2 error: " + e.getMessage());
                 }
                 return null;
             }
 
             @Override
             protected void onPostExecute(Void aVoid) {
-                Log.d("socket", "end");
+                mLogger.add("recv onPostExecute");
                 if (mListener != null) {
-                    mListener.onClose();
+                    //mListener.onClose();
                 }
             }
 
             @Override
             protected void onProgressUpdate(byte[]... values) {
-                Log.d("recv", "onProgressUpdate: " + values[0].length);
+                mLogger.add("recv onProgressUpdate: " + values[0].length);
                 if (mListener != null) {
                     mListener.onRecv(values[0]);
                 }
@@ -83,34 +89,32 @@ public class AsyncSocket {
 
     public void send(byte[] data) {
         if (!isConnected()) {
-            Log.d("socket", "not connected");
+            mLogger.add("send error: not connected");
             if (mListener != null) {
                 mListener.onSend(false);
             }
             return;
         }
 
-        Log.d("socket", "send async");
         new AsyncTask<byte[], Void, Boolean>() {
             @Override
             protected Boolean doInBackground(byte[]... params) {
-                Log.d("send", "doInBackground");
                 try {
                     OutputStream out = s.getOutputStream();
-                    Log.d("send", "write: " + params[0][0] + ", " + params[0].length);
+                    mLogger.add("call write: " + params[0][0] + ", " + params[0].length);
                     out.write(params[0]);
                     out.close();
                     return Boolean.TRUE;
                 }
                 catch (IOException e) {
-                    Log.d("send", e.getMessage());
+                    mLogger.add("send error: " + e.getMessage());
                     return Boolean.FALSE;
                 }
             }
 
             @Override
             protected void onPostExecute(Boolean result) {
-                Log.d("socket", "send: " + result);
+                mLogger.add("send onPostExecute: " + result);
                 if (mListener != null) {
                     mListener.onSend(result);
                 }
@@ -121,21 +125,34 @@ public class AsyncSocket {
     public void close() {
         try {
             if (s != null) {
+                mLogger.add("call close");
                 s.close();
+                mLogger.add("called close");
+                if (mListener != null) {
+                    mLogger.add("call onClose");
+                    mListener.onClose();
+                }
             }
         } catch (IOException e) {
-            Log.d("close", e.getMessage());
+            mLogger.add("close error: " + e.getMessage());
         }
     }
 
-    boolean isConnected() {
+    public boolean isConnected() {
         if (s == null) {
             return false;
         }
         if (!s.isConnected()) {
             return false;
         }
+        if (s.isClosed()) {
+            return false;
+        }
         return true;
+    }
+
+    public void addLogger(Logger logger) {
+        mLogger = logger;
     }
 
     public interface SocketListener {
