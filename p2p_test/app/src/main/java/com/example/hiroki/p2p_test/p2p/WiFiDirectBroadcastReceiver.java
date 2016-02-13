@@ -123,7 +123,30 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
     public void disconnect() {
         mLogger.add("begin disconnect");
-        mLogger.add("not implemented!");
+
+        mManager.cancelConnect(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                mLogger.add("cancelConnect success");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                mLogger.add("cancelConnect failed: " + errStr(reason));
+            }
+        });
+
+        mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                mLogger.add("removeGroup success");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                mLogger.add("removeGroup failed: " + errStr(reason));
+            }
+        });
     }
 
     @Override
@@ -160,7 +183,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                         Iterator<WifiP2pDevice> it = mDecices.iterator();
                         while (it.hasNext()) {
                             WifiP2pDevice dev = it.next();
-                            mLogger.add("found peers: " + dev.toString());
+                            mLogger.add("found peers: " + dev.deviceName + " " + statusStr(dev.status));
                         }
                     }
                 });
@@ -274,5 +297,21 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             return "[BUSY]";
         else
             return "[unknown]";
+    }
+
+    static public String statusStr(int status) {
+        if (status == WifiP2pDevice.CONNECTED) {
+            return "[CONNECTED]";
+        } else if (status == WifiP2pDevice.INVITED) {
+            return "[INVITED]";
+        } else if (status == WifiP2pDevice.FAILED) {
+            return "[FAILED]";
+        } else if (status == WifiP2pDevice.AVAILABLE) {
+            return "[AVAILABLE]";
+        } else if (status == WifiP2pDevice.UNAVAILABLE) {
+            return "[UNAVAILABLE]";
+        } else {
+            return "[unknown]";
+        }
     }
 }
