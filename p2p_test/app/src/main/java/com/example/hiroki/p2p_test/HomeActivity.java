@@ -2,12 +2,10 @@ package com.example.hiroki.p2p_test;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.hiroki.p2p_test.p2p.WiFiDirectBroadcastReceiver;
 import com.example.hiroki.p2p_test.util.Logger;
@@ -20,7 +18,7 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        Logger logger = new Logger("SockActivity", (TextView) HomeActivity.this.findViewById(R.id.textView3));
+        final Logger logger = new Logger("SockActivity", (TextView) HomeActivity.this.findViewById(R.id.textView3));
         mReceiver = new WiFiDirectBroadcastReceiver(HomeActivity.this, logger);
 
         // 検索

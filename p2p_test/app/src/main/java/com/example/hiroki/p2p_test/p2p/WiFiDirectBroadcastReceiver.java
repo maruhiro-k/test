@@ -5,17 +5,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.util.Log;
 
 import com.example.hiroki.p2p_test.util.Logger;
 
-import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -26,7 +26,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     Context mContext;
     Collection<WifiP2pDevice> mDecices;
     Logger mLogger;
-
+    ServerSocket ss;
+    ClientSocket cs;
+    AsyncSocket as;
 
     public interface LogAction {
         public abstract void add(String log);
@@ -99,24 +101,13 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         config.deviceAddress = dev.deviceAddress;
         config.wps.setup = WpsInfo.PBC; // これをつけたらつながりやすくなった（なくてもつながってたことがあったけど謎）
 
-        mLogger.add("begin connect: " + dev.deviceName);
-        mLogger.add("begin connect: " + dev.deviceAddress);
-        Log.d("test", dev.toString());
+        mLogger.add("begin connect:\n" + dev.toString());
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
                 //success logic
                 mLogger.add("connect success");
-
-                mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener() {
-                    @Override
-                    public void onConnectionInfoAvailable(WifiP2pInfo info) {
-                        mLogger.add("onConnectionInfoAvailable");
-                        mLogger.add(info.toString());
-                        final InetAddress address = info.groupOwnerAddress;
-                    }
-                });
             }
 
             @Override
@@ -138,7 +129,6 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        mLogger.add("action: " + action);
 
         if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
             mLogger.add("WIFI_STATE_CHANGED_ACTION");
@@ -170,7 +160,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                         Iterator<WifiP2pDevice> it = mDecices.iterator();
                         while (it.hasNext()) {
                             WifiP2pDevice dev = it.next();
-                            mLogger.add("found peers: " + dev.deviceName);
+                            mLogger.add("found peers: " + dev.toString());
                         }
                     }
                 });
@@ -179,6 +169,95 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             mLogger.add("WIFI_CONNECTION_CHANGED_ACTION");
             // Respond to new connection or disconnections
+
+            NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+            if (networkInfo != null && networkInfo.isConnected()) {
+                mLogger.add("connected");
+
+                WifiP2pInfo p2pInfo = (WifiP2pInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_INFO);
+                if (p2pInfo != null) {
+                    if (ss != null) {
+                        mLogger.add("already server!");
+                        return;
+                    }
+                    if (cs != null) {
+                        mLogger.add("already client!");
+                        return;
+                    }
+
+                    String addr = p2pInfo.groupOwnerAddress.getHostAddress();
+                    if (p2pInfo.isGroupOwner) {
+                        // server
+                        mLogger.add("owner is myself = " + addr);
+
+                        ss = new ServerSocket();
+                        ss.addLogger(mLogger);
+                        ss.accept(12345, new ServerSocket.AcceptListener() {
+                            @Override
+                            public void onAccept(AsyncSocket s) {
+                                mLogger.add("accept: " + s);
+                                as = s;
+                                as.init(new AsyncSocket.SocketListener() {
+                                    @Override
+                                    public void onSend(boolean result) {
+
+                                    }
+
+                                    @Override
+                                    public void onRecv(byte[] data) {
+                                        mLogger.add("recv: " + Arrays.toString(data));
+                                    }
+
+                                    @Override
+                                    public void onClose() {
+
+                                    }
+                                });
+                                byte[] data = {0x10, 0x11, 0x12};
+                                as.send(data);
+                            }
+                        });
+                    }
+                    else {
+                        // client
+                        mLogger.add("owner address = " + addr);
+
+                        cs = new ClientSocket();
+                        cs.addLogger(mLogger);
+                        cs.connect(addr, 12345, new ClientSocket.ConnectListener() {
+                            @Override
+                            public void onConnect(boolean result) {
+                                mLogger.add("connect: " + result);
+                                cs.init(new AsyncSocket.SocketListener() {
+                                    @Override
+                                    public void onSend(boolean result) {
+
+                                    }
+
+                                    @Override
+                                    public void onRecv(byte[] data) {
+                                        mLogger.add("recv: " + Arrays.toString(data));
+                                    }
+
+                                    @Override
+                                    public void onClose() {
+
+                                    }
+                                });
+                                byte[] data = {0x0, 0x1, 0x2};
+                                cs.send(data);
+                            }
+                        });
+                    }
+                }
+                else {
+                    mLogger.add("host address = null");
+                }
+            }
+            else {
+                mLogger.add("disconnected");
+                // close
+            }
         }
         else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
             mLogger.add("WIFI_THIS_DEVICE_CHANGED_ACTION");
