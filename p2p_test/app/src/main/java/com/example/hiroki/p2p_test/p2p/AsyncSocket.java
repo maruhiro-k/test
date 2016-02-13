@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Arrays;
 
 public class AsyncSocket {
@@ -25,6 +26,13 @@ public class AsyncSocket {
         }
 
         this.mListener = listener;
+        try {
+            mLogger.add("getReuseAddress " + s.getReuseAddress());
+            // サーバソケットでバインドできない例外が出ててたらこれ設定してみると良いかも
+        }
+        catch(SocketException e) {
+            mLogger.add(e.getMessage());
+        }
 
         // 受信開始
         new AsyncTask<Void, byte[], Void>() {
