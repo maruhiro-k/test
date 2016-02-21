@@ -16,11 +16,36 @@ public class BattleActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_battle);
 
-        Button btn = (Button) findViewById(R.id.button3);
-        btn.setOnClickListener(new View.OnClickListener() {
+        // 攻撃
+        Button atk_btn = (Button) findViewById(R.id.attack_button);
+        atk_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                BattleActivity.this.will_back();
+                // オーラがあれば攻撃
+                // オーラが満タンなら必殺
+                // battle_engine.attack(aura);
+            }
+        });
+
+        // 防御
+        Button def_btn = (Button) findViewById(R.id.def_button);
+        def_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 攻撃ならセーフ
+                // 必殺ならアウト
+                // battle_engine.defence();
+            }
+        });
+
+        // ためる
+        Button chg_btn = (Button) findViewById(R.id.charge_button);
+        chg_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // オーラ＋１
+                // 無防備
+                // battle_engine.charge();
             }
         });
     }
@@ -36,10 +61,10 @@ public class BattleActivity extends AppCompatActivity {
     }
 
     private void will_back() {
-
+        // 対戦中なら、戻る操作は確認する
         new AlertDialog.Builder(BattleActivity.this)
                 .setMessage("対戦を終了しますか？\n負け扱いになります。")
-                .setPositiveButton("okです", new DialogInterface.OnClickListener() {
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         finish();

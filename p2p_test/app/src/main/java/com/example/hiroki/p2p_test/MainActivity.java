@@ -22,6 +22,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Button start_btn = (Button) findViewById(R.id.start_button);
+        start_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
+                intent.putExtra("user_name", "test name");
+                startActivity(intent);
+                finish();   // ここに戻ることはないので閉じる
+            }
+        });
+        /*
+        for test
         Button btn = (Button) findViewById(R.id.button);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -41,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         });
+         */
 /*
         // input name
         final EditText editText = new EditText(MainActivity.this);
