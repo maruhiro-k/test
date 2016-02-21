@@ -3,15 +3,13 @@ package com.example.hiroki.p2p_test;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.Button;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,16 +20,35 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button start_btn = (Button) findViewById(R.id.start_button);
-        start_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
-                intent.putExtra("user_name", "test name");
-                startActivity(intent);
-                finish();   // ここに戻ることはないので閉じる
-            }
-        });
+        // セーブデータ確認
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        String name = pref.getString("name", "");
+
+        // 名前なしなら入力させる
+        if (name.isEmpty()) {
+            final EditText text = new EditText(this);
+            text.setInputType(EditorInfo.TYPE_TEXT_VARIATION_PERSON_NAME);
+            text.setHint("*文字まで");
+            // todo: 文字数制限したい
+
+            new AlertDialog.Builder(this)
+                    .setTitle("名前を入力してください")
+                    .setView(text)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // 名前決定
+                            goToLobby(text.getText().toString());
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+        }
+        else {
+            // 名前が決まっているならすぐに次の画面へ
+            goToLobby(name);
+        }
+
         /*
         for test
         Button btn = (Button) findViewById(R.id.button);
@@ -54,70 +71,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
          */
-/*
-        // input name
-        final EditText editText = new EditText(MainActivity.this);
-
-        this.dlg = new AlertDialog.Builder(MainActivity.this)
-                .setMessage("メッセージ")
-                .setPositiveButton("OKOK", new OKButtonClickHandler(editText))
-                .setView(editText)
-                .setCancelable(false)
-                .create();
-
-        Button btn = (Button) findViewById(R.id.button);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-//                startActivity(intent);
-                dlg.show();
-            }
-        });
-
-        editText.setOnFocusChangeListener(new ForcusChangeHandler(this.dlg));
-
-        EditText editText2 = (EditText) findViewById(R.id.editText);
-        editText2.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                Log.d("editor action", String.format("id %d", actionId));
-                ((EditText)v).selectAll();
-                return false;
-            }
-        });
-*/
     }
-    /*
-    private class ForcusChangeHandler implements View.OnFocusChangeListener {        // (2)
-        AlertDialog dialog;
 
-        public ForcusChangeHandler(AlertDialog dialog) {
-            this.dialog = dialog;
+    private void goToLobby(String name) {
+        // ロビーへ移動
+        Log.d("test", "name = " + name);
+
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        if (pref.getString("name", "") != name) {
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putString("name", name);
+            editor.commit();
         }
 
-        @Override
-        public void onFocusChange(View v, boolean hasFocus) {                   // (3)
-            if (hasFocus) {
-                dialog.getWindow().setSoftInputMode(                            // (4)
-                        WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-            }
-        }
+        Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
+        intent.putExtra("name", name);
+        startActivity(intent);
+        finish();   // ここに戻ることはないので閉じる
     }
-    private class OKButtonClickHandler implements DialogInterface.OnClickListener {
-        EditText editText;
 
-        public OKButtonClickHandler(EditText editText) {
-            this.editText = editText;
-        }
-
-        @Override
-        public void onClick(DialogInterface dialog,
-                            int which) {
-            Log.d("input", String.format("text %s which %d %d %d", editText.getText().toString(), which, DialogInterface.BUTTON_POSITIVE, DialogInterface.BUTTON_NEGATIVE));
-        }
-    }
-*/
     @Override
     protected void onStop() {
         super.onStop();
