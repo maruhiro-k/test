@@ -68,36 +68,36 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
     public void search() {
         if (!isEnabled()) {
-            mLogger.add("P2P Disabled! (search)");
+            //mLogger.add("P2P Disabled! (search)");
             return;
         }
-        mLogger.add("begin discover");
+        //mLogger.add("begin discover");
 
         mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                mLogger.add("discover: success");
+                //mLogger.add("discover: success");
             }
 
             @Override
             public void onFailure(int reasonCode) {
-                mLogger.add("discover: fail: " + errStr(reasonCode));
+                //mLogger.add("discover: fail: " + errStr(reasonCode));
             }
         });
     }
 
     public void connect(WifiP2pDevice target) {
         if (!isEnabled()) {
-            mLogger.add("P2P Disabled! (connect)");
+            //mLogger.add("P2P Disabled! (connect)");
             return;
         }
         if (target == null) {
-            mLogger.add("hostName is invalid");
+            //mLogger.add("hostName is invalid");
             return;
         }
 
         // すでにつながってる可能性もある
-        mLogger.add("target status: " + statusStr(target.status));
+        //mLogger.add("target status: " + statusStr(target.status));
         if (target.status == WifiP2pDevice.CONNECTED) {
             // ソケットつなぐだけ
             connectSocket();
@@ -108,14 +108,14 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = target.deviceAddress;
         config.wps.setup = WpsInfo.PBC;
-        mLogger.add("begin connect: " + target.deviceName);
+        //mLogger.add("begin connect: " + target.deviceName);
 
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
                 //success logic
-                mLogger.add("connect success");
+                //mLogger.add("connect success");
                 // ソケットつなぐ？ここでやる？
                 connectSocket();
             }
@@ -123,7 +123,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             @Override
             public void onFailure(int reason) {
                 //failure logic
-                mLogger.add("connect: fail: " + errStr(reason));
+                //mLogger.add("connect: fail: " + errStr(reason));
             }
         });
     }
@@ -133,7 +133,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             @Override
             public void onConnectionInfoAvailable(WifiP2pInfo info) {
                 if (info.groupOwnerAddress == null) {
-                    mLogger.add("info.groupOwnerAddress is null");
+                    //mLogger.add("info.groupOwnerAddress is null");
                     return;
                 }
                 if (info.isGroupOwner) {
@@ -151,7 +151,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         ss.accept(12345, new ServerSocket.AcceptListener() {
             @Override
             public void onAccept(AsyncSocket s) {
-                mLogger.add("accept: " + s);
+                //mLogger.add("accept: " + s);
                 if (mListener != null) {
                     mListener.onConnect(s);
                 }
@@ -165,7 +165,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         cs.connect(address, 12345, new ClientSocket.ConnectListener() {
             @Override
             public void onConnect(boolean result) {
-                mLogger.add("connect: " + result);
+                //mLogger.add("connect: " + result);
                 if (mListener != null) {
                     mListener.onConnect(cs);
                 }
@@ -174,29 +174,29 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     }
 
     public void disconnect() {
-        mLogger.add("begin disconnect");
+        //mLogger.add("begin disconnect");
 
         mManager.cancelConnect(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                mLogger.add("cancelConnect success");
+                //mLogger.add("cancelConnect success");
             }
 
             @Override
             public void onFailure(int reason) {
-                mLogger.add("cancelConnect failed: " + errStr(reason));
+                //mLogger.add("cancelConnect failed: " + errStr(reason));
             }
         });
 
         mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                mLogger.add("removeGroup success");
+                //mLogger.add("removeGroup success");
             }
 
             @Override
             public void onFailure(int reason) {
-                mLogger.add("removeGroup failed: " + errStr(reason));
+                //mLogger.add("removeGroup failed: " + errStr(reason));
             }
         });
     }
@@ -206,20 +206,20 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         String action = intent.getAction();
 
         if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
-            mLogger.add("WIFI_STATE_CHANGED_ACTION");
+            //mLogger.add("WIFI_STATE_CHANGED_ACTION");
 
             int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
             if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                 // Wifi P2P is enabled
-                mLogger.add("check: P2P enabled!");
+                //mLogger.add("check: P2P enabled!");
             } else {
                 // Wi-Fi P2P is not enabled
-                mLogger.add("Error: p2p disabled!");
+                //mLogger.add("Error: p2p disabled!");
             }
 
         }
         else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
-            mLogger.add("WIFI_PEERS_CHANGED_ACTION");
+            //mLogger.add("WIFI_PEERS_CHANGED_ACTION");
 
             // Call WifiP2pManager.requestPeers() to get a list of current peers
             if (mManager != null) {
@@ -235,7 +235,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             }
         }
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
-            mLogger.add("WIFI_CONNECTION_CHANGED_ACTION");
+            //mLogger.add("WIFI_CONNECTION_CHANGED_ACTION");
             // Respond to new connection or disconnections
 
             NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
@@ -255,7 +255,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             }
         }
         else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
-            mLogger.add("WIFI_THIS_DEVICE_CHANGED_ACTION");
+            //mLogger.add("WIFI_THIS_DEVICE_CHANGED_ACTION");
             // Respond to this device's wifi state changing
         }
     }

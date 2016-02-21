@@ -21,11 +21,11 @@ public class ServerSocket {
             protected Socket doInBackground(Integer... params) {
                 try {
                     s0 = new java.net.ServerSocket(params[0]);
-                    mLogger.add("call accept");
+                    //mLogger.add("call accept");
                     return s0.accept();
                 }
                 catch (IOException e) {
-                    mLogger.add("accept error: " + e.getMessage());
+                    //mLogger.add("accept error: " + e.getMessage());
                     return null;
                 }
             }
@@ -47,7 +47,7 @@ public class ServerSocket {
                 s0.close();
             }
         } catch (IOException e) {
-            mLogger.add("close error: " + e.getMessage());
+            //mLogger.add("close error: " + e.getMessage());
         }
     }
 
