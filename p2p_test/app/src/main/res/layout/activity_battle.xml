@@ -34,11 +34,12 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true" />
 
-    <GridLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
-        android:layout_above="@+id/attack_button"></GridLayout>
+        android:layout_above="@+id/attack_button"
+        android:id="@+id/battle_container"></FrameLayout>
 
 </RelativeLayout>

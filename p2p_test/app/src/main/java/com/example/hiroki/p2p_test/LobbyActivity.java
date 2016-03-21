@@ -34,6 +34,11 @@ public class LobbyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lobby);
 
+        Intent intent = new Intent(getApplicationContext(), BattleActivity.class);
+        // intent.putExtra("mydata", my_data);   // Serializableが便利っぽい
+        // intent.putExtra("enemy", enemy_data);   // Serializableが便利っぽい
+        startActivity(intent);
+        /*
         Intent intent = getIntent();
         String name = intent.getStringExtra("name");
         Log.d("LobbyActivity", "name = " + name);
@@ -104,6 +109,7 @@ public class LobbyActivity extends AppCompatActivity {
 
         // 初期化
         onFoundDevices(null);
+        */
     }
 
     private void onFoundDevices(Collection<WifiP2pDevice> devices) {
