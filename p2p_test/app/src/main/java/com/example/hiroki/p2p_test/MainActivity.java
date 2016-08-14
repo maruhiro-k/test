@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -73,7 +74,24 @@ public class MainActivity extends AppCompatActivity {
          */
     }
 
+    private boolean setWifiOn() {
+        WifiManager wifi = (WifiManager)getSystemService(WIFI_SERVICE);
+        if (!wifi.isWifiEnabled()) {
+            boolean res = wifi.setWifiEnabled(true);
+            if (!res) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void goToLobby(String name) {
+        boolean wifi = setWifiOn();
+        if (!wifi) {
+            // エラー
+            return;
+        }
+
         // ロビーへ移動
         Log.d("test", "name = " + name);
 

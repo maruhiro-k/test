@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.hiroki.p2p_test.battle.character.Player;
 import com.example.hiroki.p2p_test.p2p.AsyncSocket;
 import com.example.hiroki.p2p_test.p2p.WiFiDirectBroadcastReceiver;
 
@@ -34,11 +35,18 @@ public class LobbyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lobby);
 
+        /*
+        // 戦闘シーンだけテスト
         Intent intent = new Intent(getApplicationContext(), BattleActivity.class);
         // intent.putExtra("mydata", my_data);   // Serializableが便利っぽい
         // intent.putExtra("enemy", enemy_data);   // Serializableが便利っぽい
+        名前
+        コントローラの種
+        intent.putExtra("me", me);   // Serializableが便利っぽい
+        intent.putExtra("enemy", enemy);   // Serializableが便利っぽい
+
         startActivity(intent);
-        /*
+*/
         Intent intent = getIntent();
         String name = intent.getStringExtra("name");
         Log.d("LobbyActivity", "name = " + name);
@@ -87,6 +95,9 @@ public class LobbyActivity extends AppCompatActivity {
                 Intent intent = new Intent(getApplicationContext(), BattleActivity.class);
                 // intent.putExtra("mydata", my_data);   // Serializableが便利っぽい
                 // intent.putExtra("enemy", enemy_data);   // Serializableが便利っぽい
+
+                MyApp appState = (MyApp)getApplicationContext();
+                appState.setS(s);
                 startActivity(intent);
             }
 
@@ -109,7 +120,6 @@ public class LobbyActivity extends AppCompatActivity {
 
         // 初期化
         onFoundDevices(null);
-        */
     }
 
     private void onFoundDevices(Collection<WifiP2pDevice> devices) {
@@ -147,13 +157,13 @@ public class LobbyActivity extends AppCompatActivity {
 
         public void add(WifiP2pDevice device) {
             mDevices.add(device);
-
+/*
             // 表示確認のための水増し
             for (int i=0; i<10; ++i) {
                 WifiP2pDevice d = new WifiP2pDevice();
                 d.deviceName = device.deviceName + "." + Integer.toString(i);
                 mDevices.add(d);
-            }
+            }*/
         }
 
         @Override
@@ -192,7 +202,7 @@ public class LobbyActivity extends AppCompatActivity {
                     mReceiver.connect(dev);
 
                     // 両者が開始を押した時点で開始
-                    AlertDialog dlg = new AlertDialog.Builder(LobbyActivity.this, android.R.style.Theme_Material)
+                    AlertDialog dlg = new AlertDialog.Builder(LobbyActivity.this)
                             .setTitle("相手からの返事を待っています...")
                             .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
                                 @Override

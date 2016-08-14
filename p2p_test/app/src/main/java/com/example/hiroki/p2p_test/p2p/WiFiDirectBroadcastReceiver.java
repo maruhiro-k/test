@@ -12,6 +12,7 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.util.Log;
 
 import com.example.hiroki.p2p_test.util.Logger;
 
@@ -87,11 +88,14 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     }
 
     public void connect(WifiP2pDevice target) {
+        Log.d("A", "A1");
         if (!isEnabled()) {
+            Log.d("A", "A2");
             //mLogger.add("P2P Disabled! (connect)");
             return;
         }
         if (target == null) {
+            Log.d("A", "A3");
             //mLogger.add("hostName is invalid");
             return;
         }
@@ -99,21 +103,25 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         // すでにつながってる可能性もある
         //mLogger.add("target status: " + statusStr(target.status));
         if (target.status == WifiP2pDevice.CONNECTED) {
+            Log.d("A", "A4");
             // ソケットつなぐだけ
             connectSocket();
             return;
         }
 
         // つながっていなかったらconnect
+        Log.d("A", "A5");
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = target.deviceAddress;
         config.wps.setup = WpsInfo.PBC;
         //mLogger.add("begin connect: " + target.deviceName);
 
+        Log.d("A", "A6");
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
+                Log.d("A", "A7");
                 //success logic
                 //mLogger.add("connect success");
                 // ソケットつなぐ？ここでやる？
@@ -122,10 +130,12 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
             @Override
             public void onFailure(int reason) {
+                Log.d("A", "A8");
                 //failure logic
                 //mLogger.add("connect: fail: " + errStr(reason));
             }
         });
+        Log.d("A", "A9");
     }
 
     protected void connectSocket() {

@@ -23,9 +23,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 
+import com.example.hiroki.p2p_test.battle.BattleEngine;
+import com.example.hiroki.p2p_test.battle.character.Player;
+import com.example.hiroki.p2p_test.p2p.AsyncSocket;
+
 import java.util.zip.CRC32;
 
 public class BattleActivity extends AppCompatActivity {
+    BattleEngine b;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +72,15 @@ public class BattleActivity extends AppCompatActivity {
 
         FrameLayout container = (FrameLayout) findViewById(R.id.battle_container);
         container.addView(new BattleView(this));
+
+        MyApp appState = (MyApp)getApplicationContext();
+        AsyncSocket s = appState.getS();
+        Log.d("test", s.toString() + " = " + (s.isConnected() ? "connected" : "dis"));
+        /*
+        Player me = new Player("me");
+        Player enemy = new Player("enemy");
+        b = new BattleEngine(me, enemy);
+        */
     }
     class BattleView extends SurfaceView implements SurfaceHolder.Callback {
         Bitmap b1;
