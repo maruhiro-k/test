@@ -5,21 +5,18 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDevice;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.example.hiroki.p2p_test.battle.character.Player;
-import com.example.hiroki.p2p_test.battle.controller.SocketController;
 import com.example.hiroki.p2p_test.p2p.AsyncSocket;
 import com.example.hiroki.p2p_test.p2p.WiFiDirectBroadcastReceiver;
 
@@ -30,6 +27,7 @@ import java.util.Iterator;
 public class LobbyActivity extends AppCompatActivity {
     WiFiDirectBroadcastReceiver mReceiver;
     MatchingListAdapter mListAdapter;
+    AlertDialog mMatchingDlg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +82,7 @@ public class LobbyActivity extends AppCompatActivity {
 
             @Override
             public void onDisconnect() {
+                stopMatching();
             }
         }, null);
         mReceiver.start();
@@ -113,6 +112,12 @@ public class LobbyActivity extends AppCompatActivity {
             }
         }
         mListAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onStop() {
+        stopMatching();
+        super.onStop();
     }
 
     @Override
@@ -191,7 +196,7 @@ public class LobbyActivity extends AppCompatActivity {
 
                     if (ok) {
                         // 両者が開始を押した時点で開始
-                        AlertDialog dlg = new AlertDialog.Builder(LobbyActivity.this)
+                        mMatchingDlg = new AlertDialog.Builder(LobbyActivity.this)
                                 .setTitle("相手からの返事を待っています...")
                                 .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
                                     @Override
@@ -202,9 +207,6 @@ public class LobbyActivity extends AppCompatActivity {
                                 })
                                 .show();
                     }
-
-                    // todo: 接続できたり、切れたりしたらダイアログ閉じる
-                    // dlg.dismiss();
                 }
             });
 
@@ -220,5 +222,12 @@ public class LobbyActivity extends AppCompatActivity {
         appState.setSocket(s);
 
         startActivity(new Intent(appState, BattleActivity.class));
+    }
+
+    private void stopMatching() {
+        if (mMatchingDlg != null) {
+            mMatchingDlg.dismiss();
+            mMatchingDlg = null;
+        }
     }
 }
