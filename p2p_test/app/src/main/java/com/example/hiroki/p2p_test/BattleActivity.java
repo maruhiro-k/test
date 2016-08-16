@@ -3,23 +3,18 @@ package com.example.hiroki.p2p_test;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.RectF;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Layout;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -31,8 +26,6 @@ import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
 import com.example.hiroki.p2p_test.battle.controller.RandomController;
 import com.example.hiroki.p2p_test.battle.controller.SocketController;
 import com.example.hiroki.p2p_test.p2p.AsyncSocket;
-
-import java.util.zip.CRC32;
 
 public class BattleActivity extends AppCompatActivity {
     BattleEngine B;
@@ -66,11 +59,32 @@ public class BattleActivity extends AppCompatActivity {
 
         // 対戦用意
         B = new BattleEngine(me, enemy);
-        B.setLogView((TextView) findViewById(R.id.log_text));
         B.start();
+        B.setOnEndListener(new BattleEngine.OnEndListener(){
+            @Override
+            public void onEnd() {
+                new AlertDialog.Builder(BattleActivity.this)
+                        .setTitle("再戦しますか？")
+                        .setPositiveButton("再戦！", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                B.start();
+                            }
+                        })
+                        .setNegativeButton("終了", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                finish();
+                            }
+                        })
+                        .show();
+            }
+        });
 
         // デバッグ用
+        B.setLogView((TextView) findViewById(R.id.log_text));
     }
+
     class BattleView extends SurfaceView implements SurfaceHolder.Callback {
         Bitmap b1;
         Bitmap b2;
