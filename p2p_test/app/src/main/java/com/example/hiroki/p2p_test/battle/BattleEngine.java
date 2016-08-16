@@ -154,6 +154,7 @@ public class BattleEngine implements Player.Listener {
         }
 
         if (mMyPlayer.getAction() != BattleAction.NO_ACTION && mEnemyPlayer.getAction() != BattleAction.NO_ACTION) {
+            echo("start_action");
             start_action();
         }
     }
