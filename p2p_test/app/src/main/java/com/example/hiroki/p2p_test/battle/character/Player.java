@@ -45,35 +45,51 @@ public class Player implements ControllerBase.Listener {
     // 倒れる
     public void hello() {
         // todo
+        // setPose(Hello);
+        mStatus = new Status(); // 新しいものを常に生成
         mAction = BattleAction.NO_ACTION;
     }
     public void idling() {
         // todo
+        // setPose(Idling);
         mAction = BattleAction.NO_ACTION;
         mCtrl.startTurn();
     }
     public void finish() {
         // todo
+        // setPose(win or lose);
     }
-    public Aura action() {
-        // todo
+    public Aura doAction() {
+        mCtrl.lock(true);   // 念のためここでもロック
+
+        // todo 姿勢を変える
+        // setPose(mAction);
+
+        // 攻撃
+        if (mAction == BattleAction.ATTACK) {
+            if (mStatus.aura == 0) {
+                return null;    // オーラ不足で不発
+            }
+            else if (mStatus.aura >= Aura.SUPER_POWER) {
+                return new Aura(mStatus.aura);  // 超撃
+            }
+            else {
+                return new Aura(1);
+            }
+        }
+
         return null;
-    }
-
-    public void update() {
-        // todo
-//        step++;
-        updateImpl();
-    }
-
-    protected void updateImpl() {
     }
 
     public void damage(int num) {
         mStatus.life -= num;
-        // todo
-        // damageAction();
+
+        if (num > 0) {
+            // todo
+            // setPose(damaged);
+        }
     }
+
     public void changeAura(int num) {
         mStatus.aura += num;
         if (mStatus.aura > Aura.SUPER_POWER) {
@@ -83,6 +99,11 @@ public class Player implements ControllerBase.Listener {
             mStatus.aura = 0;
         }
         // todo
+    }
+
+    public void update() {
+        // todo
+        // 姿勢アニメーション
     }
 
     public void notifyEnemyAction(int act) {
@@ -99,8 +120,8 @@ public class Player implements ControllerBase.Listener {
         mCtrl.setResult(turn_number, mStatus, enemy_data);
     }
 
-    public Status getStatus() {
-        return mStatus.clone();
+    public final Status getStatus() {
+        return mStatus;
     }
 
     public int getAction() {

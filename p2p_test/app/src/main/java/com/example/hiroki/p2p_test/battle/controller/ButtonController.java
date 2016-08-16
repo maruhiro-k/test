@@ -37,21 +37,12 @@ public class ButtonController extends ControllerBase {
     }
 
     @Override
-    public void startTurn() {
-        enableInput(true);
-        super.startTurn();
-    }
+    public void lock(boolean is_lock) {
+        super.lock(is_lock);
 
-    @Override
-    protected void action(int act) {
-        enableInput(false);
-        super.action(act);
-    }
-
-    private void enableInput(boolean enable) {
         for (Button b : mButtons) {
             if (b != null) {
-                b.setEnabled(enable);
+                b.setEnabled(! is_lock);
             }
         }
     }

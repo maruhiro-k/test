@@ -24,15 +24,20 @@ public abstract class ControllerBase {
 
     // ターン開始
     public void startTurn() {
-        mLock = false;
+        lock(false);
     }
 
     // 自分の行動
     protected void action(int act) {
-        mLock = true;
+        lock(true);
         if (mListener != null) {
             mListener.action(this, act);
         }
+    }
+
+    // 操作不可を切り替え
+    public void lock(boolean is_lock) {
+        mLock = is_lock;
     }
 
     // 相手の行動が決定した
