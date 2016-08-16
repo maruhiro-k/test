@@ -19,6 +19,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.hiroki.p2p_test.battle.character.Player;
+import com.example.hiroki.p2p_test.battle.controller.SocketController;
 import com.example.hiroki.p2p_test.p2p.AsyncSocket;
 import com.example.hiroki.p2p_test.p2p.WiFiDirectBroadcastReceiver;
 
@@ -35,18 +36,6 @@ public class LobbyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lobby);
 
-        /*
-        // 戦闘シーンだけテスト
-        Intent intent = new Intent(getApplicationContext(), BattleActivity.class);
-        // intent.putExtra("mydata", my_data);   // Serializableが便利っぽい
-        // intent.putExtra("enemy", enemy_data);   // Serializableが便利っぽい
-        名前
-        コントローラの種
-        intent.putExtra("me", me);   // Serializableが便利っぽい
-        intent.putExtra("enemy", enemy);   // Serializableが便利っぽい
-
-        startActivity(intent);
-*/
         Intent intent = getIntent();
         String name = intent.getStringExtra("name");
         Log.d("LobbyActivity", "name = " + name);
@@ -90,15 +79,7 @@ public class LobbyActivity extends AppCompatActivity {
             @Override
             public void onConnect(AsyncSocket s) {
                 // つながったら対戦開始
-                // その前に情報交換確認かな
-
-                Intent intent = new Intent(getApplicationContext(), BattleActivity.class);
-                // intent.putExtra("mydata", my_data);   // Serializableが便利っぽい
-                // intent.putExtra("enemy", enemy_data);   // Serializableが便利っぽい
-
-                MyApp appState = (MyApp)getApplicationContext();
-                appState.setS(s);
-                startActivity(intent);
+                startBattle(s);
             }
 
             @Override
@@ -153,6 +134,7 @@ public class LobbyActivity extends AppCompatActivity {
 
         public void clear() {
             mDevices.clear();
+            addRandomer();
         }
 
         public void add(WifiP2pDevice device) {
@@ -164,6 +146,12 @@ public class LobbyActivity extends AppCompatActivity {
                 d.deviceName = device.deviceName + "." + Integer.toString(i);
                 mDevices.add(d);
             }*/
+        }
+
+        public void addRandomer() {
+            WifiP2pDevice d = new WifiP2pDevice();
+            d.deviceName = "ランダムさん";
+            add(d);
         }
 
         @Override
@@ -199,19 +187,21 @@ public class LobbyActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     Log.d("test", "start battle: " + dev.deviceName);
-                    mReceiver.connect(dev);
+                    boolean ok = mReceiver.connect(dev);
 
-                    // 両者が開始を押した時点で開始
-                    AlertDialog dlg = new AlertDialog.Builder(LobbyActivity.this)
-                            .setTitle("相手からの返事を待っています...")
-                            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // todo: 確認すべき
-                                    mReceiver.disconnect();
-                                }
-                            })
-                            .show();
+                    if (ok) {
+                        // 両者が開始を押した時点で開始
+                        AlertDialog dlg = new AlertDialog.Builder(LobbyActivity.this)
+                                .setTitle("相手からの返事を待っています...")
+                                .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // todo: 確認すべき
+                                        mReceiver.disconnect();
+                                    }
+                                })
+                                .show();
+                    }
 
                     // todo: 接続できたり、切れたりしたらダイアログ閉じる
                     // dlg.dismiss();
@@ -220,5 +210,15 @@ public class LobbyActivity extends AppCompatActivity {
 
             return convertView;
         }
+    }
+
+    private void startBattle(AsyncSocket s) {
+        Log.d("test", "start battle: " + (s!=null ? s.toString() : "null"));
+        // 対戦相手をセット
+        // nullならNPC
+        MyApp appState = (MyApp) getApplicationContext();
+        appState.setSocket(s);
+
+        startActivity(new Intent(appState, BattleActivity.class));
     }
 }

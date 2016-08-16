@@ -1,18 +1,32 @@
 package com.example.hiroki.p2p_test.battle.character;
 
+import android.util.Log;
+
 import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
+import com.example.hiroki.p2p_test.battle.protocol.BattleAction;
 
 /**
  * Created by hiroki on 2016/03/21.
  */
-public class Player {
+public class Player implements ControllerBase.Listener {
     String mName;
     Status mStatus;
     ControllerBase mCtrl;
 //    Bitmap charImage[];
 
-    public Player(String name) {
+    Listener mListener;
+    int mAction;
+
+    public Player(String name, ControllerBase ctrl) {
         this.mName = name;
+        this.mCtrl = ctrl;
+        mCtrl.setListener(this);
+        this.mStatus = new Status();
+        mAction = BattleAction.NO_ACTION;
+    }
+
+    public void setListener(Player.Listener listener) {
+        this.mListener = listener;
     }
 
     public void start()
@@ -31,8 +45,14 @@ public class Player {
     // 倒れる
     public void hello() {
         // todo
+        mAction = BattleAction.NO_ACTION;
     }
     public void idling() {
+        // todo
+        mAction = BattleAction.NO_ACTION;
+        mCtrl.startTurn();
+    }
+    public void finish() {
         // todo
     }
     public Aura action() {
@@ -40,10 +60,13 @@ public class Player {
         return null;
     }
 
-    public void update()
-    {
+    public void update() {
         // todo
 //        step++;
+        updateImpl();
+    }
+
+    protected void updateImpl() {
     }
 
     public void damage(int num) {
@@ -66,12 +89,31 @@ public class Player {
     }
 
     public void notifyResult(int turn_number, Player.Status enemy_data) {
-        mCtrl.setResult(turn_number, getStatus(), enemy_data);
-        // todo: 送った結果どうするのか考え直す
+        if (enemy_data.life == 0) {
+            // win
+        }
+        else if (mStatus.life == 0) {
+            // lose
+        }
+
+        mCtrl.setResult(turn_number, mStatus, enemy_data);
     }
 
     public Status getStatus() {
         return mStatus.clone();
+    }
+
+    public int getAction() {
+        return mAction;
+    }
+
+    @Override
+    public void action(ControllerBase ctrl, int act) {
+        mAction = act;
+        Log.d(mName, "act=" + mAction);
+        if (mListener != null) {
+            mListener.action(this, act);
+        }
     }
 
     static public class Status {
@@ -84,5 +126,10 @@ public class Player {
             s.aura = aura;
             return s;
         }
+    }
+
+    // 行動決定をコールバック
+    public interface Listener{
+        public void action(Player player, int act);
     }
 }

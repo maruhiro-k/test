@@ -12,9 +12,7 @@ import com.example.hiroki.p2p_test.battle.protocol.BattleAction;
 public class ButtonController extends ControllerBase {
     Button mButtons[] = new Button[5];
 
-    public ButtonController(Button btns[], ControllerBase.Listener listener) {
-        super(listener);
-
+    public ButtonController(Button btns[]) {
         for (int i=0; i<btns.length; ++i) {
             registerButton(btns[i], i);
         }
@@ -32,24 +30,25 @@ public class ButtonController extends ControllerBase {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                action(act);
+                action(act+1);
             }
         });
         return true;
     }
 
     @Override
-    protected void begin_turn(int turn_number, Player.Status my_data, Player.Status enemy_data) {
+    public void startTurn() {
         enableInput(true);
+        super.startTurn();
     }
 
     @Override
-    protected void end_turn(int act) {
+    protected void action(int act) {
         enableInput(false);
+        super.action(act);
     }
 
-    private void enableInput(boolean enable)
-    {
+    private void enableInput(boolean enable) {
         for (Button b : mButtons) {
             if (b != null) {
                 b.setEnabled(enable);

@@ -22,65 +22,54 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import com.example.hiroki.p2p_test.battle.BattleEngine;
 import com.example.hiroki.p2p_test.battle.character.Player;
+import com.example.hiroki.p2p_test.battle.controller.ButtonController;
+import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
+import com.example.hiroki.p2p_test.battle.controller.RandomController;
+import com.example.hiroki.p2p_test.battle.controller.SocketController;
 import com.example.hiroki.p2p_test.p2p.AsyncSocket;
 
 import java.util.zip.CRC32;
 
 public class BattleActivity extends AppCompatActivity {
-    BattleEngine b;
+    BattleEngine B;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_battle);
 
-        // 攻撃
-        Button atk_btn = (Button) findViewById(R.id.attack_button);
-        atk_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // オーラがあれば攻撃
-                // オーラが満タンなら必殺
-                // battle_engine.attack(aura);
-            }
-        });
-
-        // 防御
-        Button def_btn = (Button) findViewById(R.id.def_button);
-        def_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 攻撃ならセーフ
-                // 必殺ならアウト
-                // battle_engine.defence();
-            }
-        });
-
-        // ためる
-        Button chg_btn = (Button) findViewById(R.id.charge_button);
-        chg_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // オーラ＋１
-                // 無防備
-                // battle_engine.charge();
-            }
-        });
-
         FrameLayout container = (FrameLayout) findViewById(R.id.battle_container);
         container.addView(new BattleView(this));
 
+        // 自分を生成
+        Button buttons[] = new Button[3];
+        buttons[0] = (Button) findViewById(R.id.attack_btn);
+        buttons[1] = (Button) findViewById(R.id.guard_btn);
+        buttons[2] = (Button) findViewById(R.id.power_btn);
+        Player me = new Player("me", new ButtonController(buttons));
+
+        // 敵を生成
         MyApp appState = (MyApp)getApplicationContext();
-        AsyncSocket s = appState.getS();
-        Log.d("test", s.toString() + " = " + (s.isConnected() ? "connected" : "dis"));
-        /*
-        Player me = new Player("me");
-        Player enemy = new Player("enemy");
-        b = new BattleEngine(me, enemy);
-        */
+        AsyncSocket s = appState.getSocket();
+        ControllerBase ctrl;
+        if (s!=null) {
+            ctrl = new SocketController(s);
+        }
+        else {
+            ctrl = new RandomController(System.currentTimeMillis());
+        }
+        Player enemy = new Player("enemy", ctrl);
+
+        // 対戦用意
+        B = new BattleEngine(me, enemy);
+        B.setLogView((TextView) findViewById(R.id.log_text));
+        B.start();
+
+        // デバッグ用
     }
     class BattleView extends SurfaceView implements SurfaceHolder.Callback {
         Bitmap b1;

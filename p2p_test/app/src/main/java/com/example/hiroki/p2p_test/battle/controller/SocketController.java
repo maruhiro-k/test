@@ -10,8 +10,7 @@ import com.example.hiroki.p2p_test.p2p.AsyncSocket;
 public class SocketController extends ControllerBase {
     AuraBattleProtocol mABP;
 
-    public SocketController(AsyncSocket sock, ControllerBase.Listener listener) {
-        super(listener);
+    public SocketController(AsyncSocket sock) {
 
         mABP = new AuraBattleProtocol(sock);
         mABP.setListener(new AuraBattleProtocol.Listener() {
@@ -31,14 +30,14 @@ public class SocketController extends ControllerBase {
     }
 
     @Override
-    protected void begin_turn(int turn_number, Player.Status my_data, Player.Status enemy_data) {
+    public void setResult(int turn_number, Player.Status my_data, Player.Status enemy_data) {
+        super.setResult(turn_number, my_data, enemy_data);
         mABP.sendResult(turn_number, my_data, enemy_data);
     }
 
     @Override
-    protected void end_turn(int act) {
-        // 何もしない
-
+    public void startTurn() {
+        super.startTurn();
     }
 
     @Override

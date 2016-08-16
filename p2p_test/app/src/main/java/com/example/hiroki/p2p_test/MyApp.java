@@ -11,11 +11,11 @@ public class MyApp extends Application {
 
     private AsyncSocket s;
 
-    public AsyncSocket getS() {
+    public AsyncSocket getSocket() {
         return s;
     }
 
-    public void setS(AsyncSocket s) {
+    public void setSocket(AsyncSocket s) {
         this.s = s;
     }
 

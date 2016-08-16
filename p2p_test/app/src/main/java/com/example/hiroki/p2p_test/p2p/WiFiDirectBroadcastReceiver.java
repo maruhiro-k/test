@@ -12,6 +12,7 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.example.hiroki.p2p_test.util.Logger;
@@ -87,17 +88,35 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         });
     }
 
-    public void connect(WifiP2pDevice target) {
-        Log.d("A", "A1");
+    public boolean connect(WifiP2pDevice target) {
         if (!isEnabled()) {
             Log.d("A", "A2");
             //mLogger.add("P2P Disabled! (connect)");
-            return;
+            return false;
         }
         if (target == null) {
             Log.d("A", "A3");
             //mLogger.add("hostName is invalid");
-            return;
+            return false;
+        }
+
+        // NPCの場合もある
+        if (target.deviceAddress == "") {
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    if (mListener != null) {
+                        mListener.onConnect(null);
+                    }
+                }
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            return true;
         }
 
         // すでにつながってる可能性もある
@@ -106,7 +125,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             Log.d("A", "A4");
             // ソケットつなぐだけ
             connectSocket();
-            return;
+            return true;
         }
 
         // つながっていなかったらconnect
@@ -136,6 +155,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             }
         });
         Log.d("A", "A9");
+        return true;
     }
 
     protected void connectSocket() {
