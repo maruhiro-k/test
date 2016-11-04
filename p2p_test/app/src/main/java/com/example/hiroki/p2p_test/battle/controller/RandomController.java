@@ -18,6 +18,10 @@ public class RandomController extends ControllerBase {
     @Override
     public void startTurn() {
         super.startTurn();
+    }
+
+    @Override
+    public void notifyDecideAction(int act) {
         action(r.nextInt(4) + 1);
     }
 }

@@ -107,6 +107,7 @@ public class Player implements ControllerBase.Listener {
     }
 
     public void notifyEnemyAction(int act) {
+        mCtrl.notifyDecideAction(act);
     }
 
     public void notifyResult(int turn_number, Player.Status enemy_data) {
