@@ -48,39 +48,47 @@ public class AuraBattleProtocol implements AsyncSocket.SocketListener {
     private String onRecvImpl(byte[] data) {
         ByteBuffer buf = ByteBuffer.wrap(data);
 
-        if (MAGIC.compareTo(new String(data, 0, 4)) != 0) {
-            return "invalid head";
+        // 改ざん確認
+        {
+            // ヘッダ確認
+            if (MAGIC.compareTo(new String(data, 0, 4)) != 0) {
+                return "invalid head";
+            }
+            buf.position(4);
+
+            // サイズ確認
+            int len = buf.getInt();
+            if (len + 8 != buf.remaining()) {
+                return "invalid length";
+            }
+
+            // CRCチェック
+            byte body[] = new byte[len];
+            buf.get(body, 0, len);
+            if (getCRC(body) != buf.getLong()) {
+                return "invalid CRC";
+            }
         }
 
-        int len = buf.getInt(4);
-        if (len != buf.remaining() - 8) {
-            return "invalid length";
-        }
+        // パース開始
+        buf.position(8);
 
-        byte body[] = new byte[len];
-        buf.get(body, 0, len);
-
-        // ちょっとばかしの改ざんチェック
-        if (getCRC(body) != buf.getLong()) {
-            return "invalid CRC";
-        }
-
-        // パース
-        switch (body[0]) {
-            case ACTION_PACKET:
+        switch (buf.get()) {
+            case ACTION_PACKET: // 行動
                 int act = buf.getInt();
                 if (mListener != null) {
                     mListener.onRecvAction(act);
                 }
                 break;
-            case RESULT_PACKET:
+
+            case RESULT_PACKET: // ターン終了同期
                 int turn_number = buf.getInt();
-                Player.Status enemy = new Player.Status();
-                enemy.life = buf.getInt();
-                enemy.aura = buf.getInt();
                 Player.Status myself = new Player.Status();
                 myself.life = buf.getInt();
                 myself.aura = buf.getInt();
+                Player.Status enemy = new Player.Status();
+                enemy.life = buf.getInt();
+                enemy.aura = buf.getInt();
                 if (mListener != null) {
                     mListener.onRecvResult(turn_number, myself, enemy);
                 }
