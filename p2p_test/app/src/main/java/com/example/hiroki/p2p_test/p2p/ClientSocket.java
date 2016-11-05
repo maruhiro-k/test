@@ -33,7 +33,7 @@ public class ClientSocket extends AsyncSocket {
                     listener.onConnect(result);
                 }
             }
-        }.execute(new InetSocketAddress(host, port));
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new InetSocketAddress(host, port));
     }
 
     public interface ConnectListener {

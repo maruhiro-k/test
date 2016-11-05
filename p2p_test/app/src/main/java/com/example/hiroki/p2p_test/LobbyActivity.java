@@ -140,22 +140,23 @@ public class LobbyActivity extends AppCompatActivity {
         public void clear() {
             mDevices.clear();
             addRandomer();
+            addSocketer();
         }
 
         public void add(WifiP2pDevice device) {
             mDevices.add(device);
-/*
-            // 表示確認のための水増し
-            for (int i=0; i<10; ++i) {
-                WifiP2pDevice d = new WifiP2pDevice();
-                d.deviceName = device.deviceName + "." + Integer.toString(i);
-                mDevices.add(d);
-            }*/
         }
 
         public void addRandomer() {
             WifiP2pDevice d = new WifiP2pDevice();
             d.deviceName = "ランダムさん";
+            add(d);
+        }
+
+        public void addSocketer() {
+            WifiP2pDevice d = new WifiP2pDevice();
+            d.deviceName = "ソケットさん";
+            d.deviceAddress = "localhost";
             add(d);
         }
 

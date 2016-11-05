@@ -118,6 +118,10 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             return true;
         }
+        else if (target.deviceAddress == "localhost") {
+            connectLocalSocket();
+            return true;
+        }
 
         // すでにつながってる可能性もある
         //mLogger.add("target status: " + statusStr(target.status));
@@ -201,6 +205,24 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 }
             }
         });
+    }
+
+    protected void connectLocalSocket() {
+        final LocalSocket ls = new LocalSocket();
+
+        ss = new ServerSocket();
+        ss.accept(12345, new ServerSocket.AcceptListener() {
+            @Override
+            public void onAccept(AsyncSocket s) {
+                //mLogger.add("accept: " + s);
+                if (mListener != null) {
+                    ls.setAcceptSocket(s);
+                    mListener.onConnect(ls);
+                }
+            }
+        });
+
+        ls.connect(12345);
     }
 
     public void disconnect() {

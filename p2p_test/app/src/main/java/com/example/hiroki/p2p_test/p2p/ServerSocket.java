@@ -38,7 +38,7 @@ public class ServerSocket {
                     listener.onAccept(as);
                 }
             }
-        }.execute(port);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, port);
     }
 
     public void close() {
