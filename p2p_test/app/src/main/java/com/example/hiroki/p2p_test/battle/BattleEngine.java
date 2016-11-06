@@ -209,7 +209,12 @@ public class BattleEngine implements Player.Listener {
         }
         else {
             // 決着
-            echo("finish battle");
+            if (stM.life <= 0) {
+                echo("finish battle, You Lose!");
+            }
+            else {
+                echo("finish battle, You Win!");
+            }
             mMyPlayer.finish();
             mEnemyPlayer.finish();
             mScene = BattleScene.kFinish;
