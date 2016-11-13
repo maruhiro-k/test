@@ -22,11 +22,7 @@ import android.widget.TextView;
 import com.example.hiroki.p2p_test.battle.BattleEngine;
 import com.example.hiroki.p2p_test.battle.character.Battler;
 import com.example.hiroki.p2p_test.battle.controller.ButtonController;
-import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
-import com.example.hiroki.p2p_test.battle.controller.RandomController;
-import com.example.hiroki.p2p_test.battle.controller.SocketController;
-import com.example.hiroki.p2p_test.lobby.RivalBase;
-import com.example.hiroki.p2p_test.p2p.AsyncSocket;
+import com.example.hiroki.p2p_test.lobby.rival.RivalBase;
 
 public class BattleActivity extends AppCompatActivity {
     BattleEngine B;

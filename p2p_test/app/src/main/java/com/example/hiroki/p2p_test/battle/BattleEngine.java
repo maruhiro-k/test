@@ -2,7 +2,6 @@ package com.example.hiroki.p2p_test.battle;
 
 import com.example.hiroki.p2p_test.battle.character.Aura;
 import com.example.hiroki.p2p_test.battle.character.Battler;
-import com.example.hiroki.p2p_test.battle.protocol.BattleAction;
 import com.example.hiroki.p2p_test.util.Logger;
 
 import java.util.Timer;
@@ -14,11 +13,11 @@ import android.widget.TextView;
  * Created by hiroki on 2016/03/21.
  */
 public class BattleEngine implements Battler.Listener {
-    int mTurn = 0;
-    Battler mMyBattler;
-    Battler mEnemyBattler;
-    Aura mMyAura;
-    Aura mEnemyAura;
+    private int mTurn = 0;
+    private Battler mMyBattler;
+    private Battler mEnemyBattler;
+    private Aura mMyAura;
+    private Aura mEnemyAura;
 
     private enum BattleScene {
         kOpen,
@@ -28,16 +27,17 @@ public class BattleEngine implements Battler.Listener {
         kFinish,
         kClose,
     }
-    BattleScene mScene = BattleScene.kOpen;
-    Timer mTimer;
-    long mStartMs = 0;
 
+    private BattleScene mScene;
+    private Timer mTimer;
+    private long mStartMs = 0;
 
     public BattleEngine(Battler my_battler, Battler enemy_battler) {
         mMyBattler = my_battler;
         mEnemyBattler = enemy_battler;
         mMyBattler.setListener(this);
         mEnemyBattler.setListener(this);
+        mScene = BattleScene.kOpen;
     }
 
     public void start() {
@@ -172,7 +172,7 @@ public class BattleEngine implements Battler.Listener {
         }
     }
 
-    public void start_hello() {
+    private void start_hello() {
         mMyBattler.hello();
         mEnemyBattler.hello();
         mScene = BattleScene.kHello;
@@ -180,7 +180,7 @@ public class BattleEngine implements Battler.Listener {
         mStartMs = System.currentTimeMillis();
     }
 
-    public void start_action() {
+    private void start_action() {
         mMyAura = mMyBattler.doAction();
         mEnemyAura = mEnemyBattler.doAction();
         mScene = BattleScene.kAction;
@@ -239,9 +239,9 @@ public class BattleEngine implements Battler.Listener {
     }
 
     public interface OnEndListener {
-        public abstract void onEnd();
+        void onEnd();
     }
-    OnEndListener mListener;
+    private OnEndListener mListener;
 
     public void setOnEndListener(OnEndListener L) {
         mListener = L;

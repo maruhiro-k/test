@@ -1,12 +1,12 @@
-package com.example.hiroki.p2p_test.lobby;
+package com.example.hiroki.p2p_test.lobby.rival;
 
 import com.example.hiroki.p2p_test.battle.character.Battler;
 import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
 import com.example.hiroki.p2p_test.battle.controller.SocketController;
-import com.example.hiroki.p2p_test.battle.protocol.AuraBattleProtocol;
-import com.example.hiroki.p2p_test.p2p.AsyncSocket;
-import com.example.hiroki.p2p_test.p2p.ClientSocket;
-import com.example.hiroki.p2p_test.p2p.ServerSocket;
+import com.example.hiroki.p2p_test.lobby.p2p.AuraBattleProtocol;
+import com.example.hiroki.p2p_test.lobby.p2p.AsyncSocket;
+import com.example.hiroki.p2p_test.lobby.p2p.ClientSocket;
+import com.example.hiroki.p2p_test.lobby.p2p.ServerSocket;
 
 import java.util.Random;
 
@@ -15,10 +15,9 @@ import java.util.Random;
  */
 
 public class SocketTester extends RivalBase {
-    ServerSocket ss;
-    ClientSocket cs;
-    AuraBattleProtocol mABP;
-    Random r;
+    private ClientSocket cs;
+    private AuraBattleProtocol mABP;
+    private Random r;
     private AsyncSocket mAcceptSocket;
 
     public SocketTester() {
@@ -36,7 +35,7 @@ public class SocketTester extends RivalBase {
         setStatus(ConnectionStatus.SEND_REQUEST);
 
         // 相手の接続待ちをするソケット
-        ss = new ServerSocket();
+        ServerSocket ss = new ServerSocket();
         ss.accept(12345, new ServerSocket.AcceptListener() {
             @Override
             public void onAccept(AsyncSocket as) {

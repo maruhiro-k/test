@@ -1,7 +1,7 @@
 package com.example.hiroki.p2p_test;
 
 import android.app.Application;
-import com.example.hiroki.p2p_test.lobby.RivalBase;
+import com.example.hiroki.p2p_test.lobby.rival.RivalBase;
 
 /**
  * Created by hiroki on 2016/04/03.

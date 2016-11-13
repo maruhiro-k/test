@@ -1,26 +1,22 @@
-package com.example.hiroki.p2p_test.p2p;
+package com.example.hiroki.p2p_test.lobby.p2p;
 
 import android.os.AsyncTask;
-
-import com.example.hiroki.p2p_test.util.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.Arrays;
 
 public class AsyncSocket {
     protected Socket s;
-    SocketListener mListener;
-    Logger mLogger;
+    private SocketListener mListener;
 
-    protected AsyncSocket(Socket s) {
+    AsyncSocket(Socket s) {
         this.s = s;
     }
 
-    public boolean init(SocketListener listener) {
+    boolean init(SocketListener listener) {
         if (!isConnected()) {
             return false;
         }
@@ -70,7 +66,7 @@ public class AsyncSocket {
         return true;
     }
 
-    public void send(byte[] data) {
+    void send(byte[] data) {
         if (!isConnected()) {
             onSend(false);
             return;
@@ -120,13 +116,7 @@ public class AsyncSocket {
         else if (s.isClosed()) {
             return false;
         }
-        else {
-            return true;
-        }
-    }
-
-    public void addLogger(Logger logger) {
-        mLogger = logger;
+        return true;
     }
 
     private void onSend(boolean result) {
@@ -148,7 +138,7 @@ public class AsyncSocket {
         }
     }
 
-    public interface SocketListener {
+    interface SocketListener {
         void onSend(boolean result);
         void onRecv(byte[] data);
         void onClose();

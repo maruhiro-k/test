@@ -7,10 +7,10 @@ import com.example.hiroki.p2p_test.battle.character.Battler;
  */
 public abstract class ControllerBase {
     private Listener mListener;
-    protected boolean mLock = true;
+    private boolean mLock = true;
 
     // 通知先を設定
-    public ControllerBase() {
+    ControllerBase() {
     }
 
 

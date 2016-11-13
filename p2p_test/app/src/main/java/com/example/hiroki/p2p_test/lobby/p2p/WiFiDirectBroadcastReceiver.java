@@ -1,4 +1,4 @@
-package com.example.hiroki.p2p_test.p2p;
+package com.example.hiroki.p2p_test.lobby.p2p;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,8 +14,6 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
-import com.example.hiroki.p2p_test.util.Logger;
-
 import java.util.Collection;
 
 public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
@@ -27,11 +25,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     ConnectListener mConnectListener;
     ServerSocket ss;
 
-    public interface LogAction {
-        public abstract void add(String log);
-    }
-
-    public WiFiDirectBroadcastReceiver(Context c, SearchListener listener, Logger logger) {
+    public WiFiDirectBroadcastReceiver(Context c, SearchListener listener) {
         super();
 
         mContext = c;
@@ -87,7 +81,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             Log.d("A", "A3");
             return false;
         }
-        if (target.deviceAddress == "") {
+        if (target.deviceAddress.isEmpty()) {
             return false;
         }
 
@@ -143,6 +137,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     }
 
     protected void connectServerSocket() {
+        Log.d("server", "connect start!");
         ss = new ServerSocket();
         ss.accept(12345, new ServerSocket.AcceptListener() {
             @Override
@@ -155,6 +150,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     }
 
     protected void connectClientSocket(String address) {
+        Log.d("client", "connect start!");
         final ClientSocket cs = new ClientSocket();
         cs.connect(address, 12345, new ClientSocket.ConnectListener() {
             @Override
@@ -188,6 +184,42 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         });
     }
 
+    public void shakeHand(AsyncSocket target, String app_name, String player_name, final ShakeListener shakeListener) {
+        WifiSocketProtocol wsp = new WifiSocketProtocol(target, app_name + "_REQ");
+
+        wsp.setListener(new AsyncSocket.SocketListener() {
+            @Override
+            public void onSend(boolean result) {
+                if (! result) {
+                    shakeListener.onRecv(null); // 失敗なら拒絶扱い
+                }
+            }
+
+            @Override
+            public void onRecv(byte[] data) {
+                if (data.length == 1 && data[0] == 0) {
+                    shakeListener.onRecv(null); // 0なら拒絶
+                }
+                else {
+                    shakeListener.onRecv(new String(data));
+                }
+            }
+
+            @Override
+            public void onClose() {
+                shakeListener.onRecv(null); // 切断なら拒絶扱い
+            }
+        });
+
+        if (player_name != null) {
+            wsp.send(player_name.getBytes());
+        }
+        else {
+            byte[] data = {0};
+            wsp.send(data);
+        }
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
@@ -218,11 +250,11 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             // Respond to new connection or disconnections
 
-            NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+            NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
             if (networkInfo != null && networkInfo.isConnected()) {
                 // つなぎに来た場合
                 // なにもしなくていいのかな
-                WifiP2pInfo p2pInfo = (WifiP2pInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_INFO);
+                WifiP2pInfo p2pInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_INFO);
                 if (p2pInfo != null && p2pInfo.isGroupOwner) {
                     connectServerSocket();
                 }
@@ -272,5 +304,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     public interface ConnectListener {
         void onConnect(AsyncSocket s);
         void onDisconnect();
+    }
+    public interface ShakeListener {
+        void onRecv(final String rivalName);
     }
 }

@@ -37,7 +37,6 @@
             android:value="@integer/google_play_services_version" />
 
         <activity android:name=".BattleActivity" />
-        <activity android:name=".SockActivity" />
         <activity android:name=".LobbyActivity"></activity>
     </application>
 

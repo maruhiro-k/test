@@ -1,8 +1,7 @@
-package com.example.hiroki.p2p_test.lobby;
+package com.example.hiroki.p2p_test.lobby.rival;
 
 import android.os.AsyncTask;
 
-import com.example.hiroki.p2p_test.battle.character.Battler;
 import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
 import com.example.hiroki.p2p_test.battle.controller.RandomController;
 

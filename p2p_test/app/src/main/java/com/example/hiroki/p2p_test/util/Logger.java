@@ -6,10 +6,10 @@ import android.util.Log;
 import android.widget.TextView;
 
 public class Logger {
-    String tag;
-    Handler h;
-    TextView t = null;
-    int num = 0;
+    private String tag;
+    private Handler h;
+    private TextView t = null;
+    private int num = 0;
 
     public Logger(String tag, TextView t) {
         this.tag = tag;
@@ -37,7 +37,7 @@ public class Logger {
         }
     }
 
-    void add_(final String log) {
+    private void add_(final String log) {
         if (t != null) {
             t.append(++num + ": " + log + "\n");
             int dL = t.getLineCount() - t.getMaxLines();

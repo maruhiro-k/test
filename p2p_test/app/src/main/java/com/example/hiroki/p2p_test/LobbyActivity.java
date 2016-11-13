@@ -16,16 +16,14 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.example.hiroki.p2p_test.lobby.RandomRival;
-import com.example.hiroki.p2p_test.lobby.RivalBase;
-import com.example.hiroki.p2p_test.lobby.SocketTester;
-import com.example.hiroki.p2p_test.lobby.WifiRival;
-import com.example.hiroki.p2p_test.p2p.AsyncSocket;
-import com.example.hiroki.p2p_test.p2p.WiFiDirectBroadcastReceiver;
+import com.example.hiroki.p2p_test.lobby.p2p.WiFiDirectBroadcastReceiver;
+import com.example.hiroki.p2p_test.lobby.rival.RandomRival;
+import com.example.hiroki.p2p_test.lobby.rival.RivalBase;
+import com.example.hiroki.p2p_test.lobby.rival.SocketTester;
+import com.example.hiroki.p2p_test.lobby.rival.WifiRival;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 public class LobbyActivity extends AppCompatActivity {
     WiFiDirectBroadcastReceiver mReceiver;
@@ -51,6 +49,7 @@ public class LobbyActivity extends AppCompatActivity {
         mListAdapter = new MatchingListAdapter(this);
         ListView matching_list = (ListView) findViewById(R.id.enemy_list);
         matching_list.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        matching_list.setAdapter(mListAdapter);
 
         // WifiDirectで検索してリストアップ
         mReceiver = new WiFiDirectBroadcastReceiver(LobbyActivity.this, new WiFiDirectBroadcastReceiver.SearchListener() {
@@ -58,7 +57,7 @@ public class LobbyActivity extends AppCompatActivity {
             public void onSearch(Collection<WifiP2pDevice> devices) {
                 onFoundDevices(devices);
             }
-        }, null);
+        });
         mReceiver.start();
 
         // 検索
@@ -81,9 +80,8 @@ public class LobbyActivity extends AppCompatActivity {
         mListAdapter.clear();
 
         if (devices != null) {
-            Iterator<WifiP2pDevice> it2 = devices.iterator();
-            while (it2.hasNext()) {
-                mListAdapter.add(new WifiRival(it2.next(), mReceiver));
+            for (WifiP2pDevice device : devices) {
+                mListAdapter.add(new WifiRival(device, mReceiver));
             }
         }
         mListAdapter.add(new RandomRival());
@@ -109,17 +107,17 @@ public class LobbyActivity extends AppCompatActivity {
 
     private class MatchingListAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
-        ArrayList<RivalBase> mRivals = new ArrayList<RivalBase>();
+        ArrayList<RivalBase> mRivals = new ArrayList<>();
 
-        public MatchingListAdapter(Context c) {
+        MatchingListAdapter(Context c) {
             mInflater = LayoutInflater.from(c);
         }
 
-        public void clear() {
+        void clear() {
             mRivals.clear();
         }
 
-        public void add(RivalBase rival) {
+        void add(RivalBase rival) {
             mRivals.add(rival);
         }
 
@@ -174,12 +172,6 @@ public class LobbyActivity extends AppCompatActivity {
 
             // リスナー設定
             rival.setListener(new RivalBase.Listener() {
-                @Override
-                public void onRecvRequest() {
-                    // 要求が来たらリストの状態を変更！
-                    // チカチカさせて、ボタンの名前を変更
-                }
-
                 @Override
                 public void onRecvCancel() {
                     // 要求が取り下げられたらリストの状態を変更！

@@ -1,6 +1,5 @@
-package com.example.hiroki.p2p_test.lobby;
+package com.example.hiroki.p2p_test.lobby.rival;
 
-import com.example.hiroki.p2p_test.battle.character.Battler;
 import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
 
 /**
@@ -8,7 +7,7 @@ import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
  */
 
 abstract public class RivalBase {
-    String  mRivalTag;
+    private String  mRivalTag;
     private ConnectionStatus mStatus;
 
     RivalBase(String tag) {
@@ -51,18 +50,34 @@ abstract public class RivalBase {
     public void cancelBattle() {
     }
 
-    protected enum ConnectionStatus {
+    enum ConnectionStatus {
         DISCONNECTED,   // 未接続
         CONNECTED,      // 接続済み
         SEND_REQUEST,   // 申請した
         ALL_OK,         // 合意ができた
     }
 
-    protected ConnectionStatus getStatus() {
+    ConnectionStatus getStatus() {
         return mStatus;
     }
 
-    protected void setStatus(ConnectionStatus st) {
+    void setStatus(ConnectionStatus st) {
+        if (mStatus == st) {
+            return;
+        }
+
+        // キャンセル判定
+        if (mStatus == ConnectionStatus.CONNECTED && st == ConnectionStatus.DISCONNECTED) {
+            if (mListener != null) {
+                mListener.onRecvCancel();
+            }
+        }
+        if (mStatus == ConnectionStatus.SEND_REQUEST && st != ConnectionStatus.ALL_OK) {
+            if (mListener != null) {
+                mListener.onRecvCancel();
+            }
+        }
+
         mStatus = st;
 
         // リスナーにも投げる
@@ -83,9 +98,8 @@ abstract public class RivalBase {
     }
 
     public interface Listener {
-        public void onRecvRequest();
-        public void onRecvCancel();
-        public void onReadyCompleted();
+        void onRecvCancel();
+        void onReadyCompleted();
     }
     Listener mListener;
 

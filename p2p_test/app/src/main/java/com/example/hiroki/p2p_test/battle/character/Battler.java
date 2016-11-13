@@ -3,19 +3,19 @@ package com.example.hiroki.p2p_test.battle.character;
 import android.util.Log;
 
 import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
-import com.example.hiroki.p2p_test.battle.protocol.BattleAction;
+import com.example.hiroki.p2p_test.battle.BattleAction;
 
 /**
  * Created by hiroki on 2016/03/21.
  */
 public class Battler implements ControllerBase.Listener {
-    String mName;
-    Status mStatus;
-    ControllerBase mCtrl;
+    private String mName;
+    private Status mStatus;
+    private ControllerBase mCtrl;
 //    Bitmap charImage[];
 
-    Listener mListener;
-    int mAction;
+    private Listener mListener;
+    private int mAction;
 
     public Battler(String name, ControllerBase ctrl) {
         this.mName = name;
@@ -152,6 +152,6 @@ public class Battler implements ControllerBase.Listener {
 
     // 行動決定をコールバック
     public interface Listener{
-        public void action(Battler battler, int act);
+        void action(Battler battler, int act);
     }
 }

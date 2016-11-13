@@ -1,14 +1,14 @@
 package com.example.hiroki.p2p_test.battle.controller;
 
 import com.example.hiroki.p2p_test.battle.character.Battler;
-import com.example.hiroki.p2p_test.battle.protocol.AuraBattleProtocol;
-import com.example.hiroki.p2p_test.p2p.AsyncSocket;
+import com.example.hiroki.p2p_test.lobby.p2p.AuraBattleProtocol;
+import com.example.hiroki.p2p_test.lobby.p2p.AsyncSocket;
 
 /**
  * Created by hiroki on 2016/03/21.
  */
 public class SocketController extends ControllerBase {
-    AuraBattleProtocol mABP;
+    private AuraBattleProtocol mABP;
 
     public SocketController(AsyncSocket sock) {
 
