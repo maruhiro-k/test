@@ -20,11 +20,12 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.example.hiroki.p2p_test.battle.BattleEngine;
-import com.example.hiroki.p2p_test.battle.character.Player;
+import com.example.hiroki.p2p_test.battle.character.Battler;
 import com.example.hiroki.p2p_test.battle.controller.ButtonController;
 import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
 import com.example.hiroki.p2p_test.battle.controller.RandomController;
 import com.example.hiroki.p2p_test.battle.controller.SocketController;
+import com.example.hiroki.p2p_test.lobby.RivalBase;
 import com.example.hiroki.p2p_test.p2p.AsyncSocket;
 
 public class BattleActivity extends AppCompatActivity {
@@ -43,19 +44,12 @@ public class BattleActivity extends AppCompatActivity {
         buttons[0] = (Button) findViewById(R.id.attack_btn);
         buttons[1] = (Button) findViewById(R.id.guard_btn);
         buttons[2] = (Button) findViewById(R.id.power_btn);
-        Player me = new Player("me", new ButtonController(buttons));
+        Battler me = new Battler("me", new ButtonController(buttons));
 
-        // 敵を生成
+        // 敵を取り出す
         MyApp appState = (MyApp)getApplicationContext();
-        AsyncSocket s = appState.getSocket();
-        ControllerBase ctrl;
-        if (s!=null) {
-            ctrl = new SocketController(s);
-        }
-        else {
-            ctrl = new RandomController(System.currentTimeMillis());
-        }
-        Player enemy = new Player("enemy", ctrl);
+        RivalBase rival = appState.getRival();
+        Battler enemy = new Battler(rival.getName(), rival.createController());
 
         // 対戦用意
         B = new BattleEngine(me, enemy);

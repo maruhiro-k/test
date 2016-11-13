@@ -1,6 +1,6 @@
 package com.example.hiroki.p2p_test.battle.controller;
 
-import com.example.hiroki.p2p_test.battle.character.Player;
+import com.example.hiroki.p2p_test.battle.character.Battler;
 
 /**
  * Created by hiroki on 2016/03/21.
@@ -19,7 +19,7 @@ public abstract class ControllerBase {
     }
 
     // 結果を受け取る
-    public void setResult(int turn_number, final Player.Status my_data, final Player.Status enemy_data) {
+    public void setResult(int turn_number, final Battler.Status my_data, final Battler.Status enemy_data) {
     }
 
     // ターン開始

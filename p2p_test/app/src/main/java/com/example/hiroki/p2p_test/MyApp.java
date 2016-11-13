@@ -1,22 +1,21 @@
 package com.example.hiroki.p2p_test;
 
 import android.app.Application;
-
-import com.example.hiroki.p2p_test.p2p.AsyncSocket;
+import com.example.hiroki.p2p_test.lobby.RivalBase;
 
 /**
  * Created by hiroki on 2016/04/03.
  */
 public class MyApp extends Application {
 
-    private AsyncSocket s;
+    private RivalBase rival;
 
-    public AsyncSocket getSocket() {
-        return s;
+    public RivalBase getRival() {
+        return rival;
     }
 
-    public void setSocket(AsyncSocket s) {
-        this.s = s;
+    public void setRival(RivalBase rival) {
+        this.rival = rival;
     }
 
 }

@@ -12,11 +12,11 @@ import java.net.SocketException;
 import java.util.Arrays;
 
 public class AsyncSocket {
-    Socket s;
+    protected Socket s;
     SocketListener mListener;
     Logger mLogger;
 
-    AsyncSocket(Socket s) {
+    protected AsyncSocket(Socket s) {
         this.s = s;
     }
 

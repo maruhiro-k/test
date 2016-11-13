@@ -11,12 +11,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.hiroki.p2p_test.lobby.RandomRival;
+import com.example.hiroki.p2p_test.lobby.RivalBase;
+import com.example.hiroki.p2p_test.lobby.SocketTester;
+import com.example.hiroki.p2p_test.lobby.WifiRival;
 import com.example.hiroki.p2p_test.p2p.AsyncSocket;
 import com.example.hiroki.p2p_test.p2p.WiFiDirectBroadcastReceiver;
 
@@ -28,6 +31,7 @@ public class LobbyActivity extends AppCompatActivity {
     WiFiDirectBroadcastReceiver mReceiver;
     MatchingListAdapter mListAdapter;
     AlertDialog mMatchingDlg;
+    String mPlayerName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,54 +39,24 @@ public class LobbyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_lobby);
 
         Intent intent = getIntent();
-        String name = intent.getStringExtra("name");
-        Log.d("LobbyActivity", "name = " + name);
+        mPlayerName = intent.getStringExtra("name");
+        Log.d("LobbyActivity", "name = " + mPlayerName);
 
         // 名前表示
         TextView nameText = (TextView) findViewById(R.id.name_text);
-        nameText.setText(name); // 名前が長いとはみ出すけど・・・（文字数制限でどうにか？）
+        nameText.setText(mPlayerName); // 名前が長いとはみ出すけど・・・（文字数制限でどうにか？）
         // 長い場合はフォントサイズを縮めてもいい？
 
         //  リスト
         mListAdapter = new MatchingListAdapter(this);
         ListView matching_list = (ListView) findViewById(R.id.enemy_list);
         matching_list.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-        matching_list.setAdapter(mListAdapter);
-
-        matching_list.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.d("test", "onSelected: " + position);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                Log.d("test", "onNothingSelected");
-            }
-        });
-        matching_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.d("test", "onClick: " + position);
-            }
-        });
 
         // WifiDirectで検索してリストアップ
-        mReceiver = new WiFiDirectBroadcastReceiver(LobbyActivity.this, new WiFiDirectBroadcastReceiver.WfdListener() {
+        mReceiver = new WiFiDirectBroadcastReceiver(LobbyActivity.this, new WiFiDirectBroadcastReceiver.SearchListener() {
             @Override
             public void onSearch(Collection<WifiP2pDevice> devices) {
                 onFoundDevices(devices);
-            }
-
-            @Override
-            public void onConnect(AsyncSocket s) {
-                // つながったら対戦開始
-                startBattle(s);
-            }
-
-            @Override
-            public void onDisconnect() {
-                stopMatching();
             }
         }, null);
         mReceiver.start();
@@ -105,12 +79,16 @@ public class LobbyActivity extends AppCompatActivity {
     private void onFoundDevices(Collection<WifiP2pDevice> devices) {
         // リスト書き換え
         mListAdapter.clear();
+
         if (devices != null) {
             Iterator<WifiP2pDevice> it2 = devices.iterator();
             while (it2.hasNext()) {
-                mListAdapter.add(it2.next());
+                mListAdapter.add(new WifiRival(it2.next(), mReceiver));
             }
         }
+        mListAdapter.add(new RandomRival());
+        mListAdapter.add(new SocketTester());
+
         mListAdapter.notifyDataSetChanged();
     }
 
@@ -131,43 +109,28 @@ public class LobbyActivity extends AppCompatActivity {
 
     private class MatchingListAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
-        ArrayList<WifiP2pDevice> mDevices = new ArrayList<WifiP2pDevice>();
+        ArrayList<RivalBase> mRivals = new ArrayList<RivalBase>();
 
         public MatchingListAdapter(Context c) {
             mInflater = LayoutInflater.from(c);
         }
 
         public void clear() {
-            mDevices.clear();
-            addRandomer();
-            addSocketer();
+            mRivals.clear();
         }
 
-        public void add(WifiP2pDevice device) {
-            mDevices.add(device);
-        }
-
-        public void addRandomer() {
-            WifiP2pDevice d = new WifiP2pDevice();
-            d.deviceName = "ランダムさん";
-            add(d);
-        }
-
-        public void addSocketer() {
-            WifiP2pDevice d = new WifiP2pDevice();
-            d.deviceName = "ソケットさん";
-            d.deviceAddress = "localhost";
-            add(d);
+        public void add(RivalBase rival) {
+            mRivals.add(rival);
         }
 
         @Override
         public int getCount() {
-            return mDevices.size();
+            return mRivals.size();
         }
 
         @Override
         public Object getItem(int position) {
-            return mDevices.get(position);
+            return mRivals.get(position);
         }
 
         @Override
@@ -183,17 +146,16 @@ public class LobbyActivity extends AppCompatActivity {
                 // ボタンを置いたらハイライトしなくなるっぽい
             }
 
-            final WifiP2pDevice dev = mDevices.get(position);
+            final RivalBase rival = mRivals.get(position);
             TextView device_name = (TextView) convertView.findViewById(R.id.device_name_text);
-            device_name.setText(dev.deviceName);
+            device_name.setText(rival.getName());
 
             // 対戦開始
             Button battle_btn = (Button) convertView.findViewById(R.id.battle_button);
             battle_btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d("test", "start battle: " + dev.deviceName);
-                    boolean ok = mReceiver.connect(dev);
+                    boolean ok = rival.requestBattle(mPlayerName);
 
                     if (ok) {
                         // 両者が開始を押した時点で開始
@@ -202,8 +164,7 @@ public class LobbyActivity extends AppCompatActivity {
                                 .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        // todo: 確認すべき
-                                        mReceiver.disconnect();
+                                        rival.cancelBattle();
                                     }
                                 })
                                 .show();
@@ -211,16 +172,41 @@ public class LobbyActivity extends AppCompatActivity {
                 }
             });
 
+            // リスナー設定
+            rival.setListener(new RivalBase.Listener() {
+                @Override
+                public void onRecvRequest() {
+                    // 要求が来たらリストの状態を変更！
+                    // チカチカさせて、ボタンの名前を変更
+                }
+
+                @Override
+                public void onRecvCancel() {
+                    // 要求が取り下げられたらリストの状態を変更！
+                    // チカチカさせて、ボタンの名前を変更
+                    stopMatching();
+                    new AlertDialog.Builder(LobbyActivity.this)
+                            .setTitle("キャンセルされました")
+                            .show();
+                }
+
+                @Override
+                public void onReadyCompleted() {
+                    // つながったら対戦開始
+                    stopMatching();
+                    startBattle(rival);
+                }
+            });
+
             return convertView;
         }
     }
 
-    private void startBattle(AsyncSocket s) {
-        Log.d("test", "start battle: " + (s!=null ? s.toString() : "null"));
+    private void startBattle(RivalBase enemy) {
+        Log.d("test", "start battle: " + (enemy!=null ? enemy.toString() : "null"));
         // 対戦相手をセット
-        // nullならNPC
         MyApp appState = (MyApp) getApplicationContext();
-        appState.setSocket(s);
+        appState.setRival(enemy);
 
         startActivity(new Intent(appState, BattleActivity.class));
     }

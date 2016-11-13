@@ -2,7 +2,7 @@ package com.example.hiroki.p2p_test.battle.protocol;
 
 import android.util.Log;
 
-import com.example.hiroki.p2p_test.battle.character.Player;
+import com.example.hiroki.p2p_test.battle.character.Battler;
 import com.example.hiroki.p2p_test.p2p.AsyncSocket;
 
 import java.nio.ByteBuffer;
@@ -13,8 +13,9 @@ import java.util.zip.CRC32;
  */
 public class AuraBattleProtocol implements AsyncSocket.SocketListener {
     static final private String MAGIC = "ABPP";
-    static final private byte ACTION_PACKET = 0x01;
-    static final private byte RESULT_PACKET = 0x02;
+    static final private byte REQUEST_PACKET = 0x01;    //!< 対戦申請（true:申請、false:キャンセル）
+    static final private byte ACTION_PACKET = 0x02;     //!< 対戦中の行動（BattleAction参照）
+    static final private byte RESULT_PACKET = 0x03;     //!< ターンの区切りに送る（ターン数、それぞれのライフと残気）
 
     AsyncSocket mSock;
     Listener mListener;
@@ -83,10 +84,10 @@ public class AuraBattleProtocol implements AsyncSocket.SocketListener {
 
             case RESULT_PACKET: // ターン終了同期
                 int turn_number = buf.getInt();
-                Player.Status myself = new Player.Status();
+                Battler.Status myself = new Battler.Status();
                 myself.life = buf.getInt();
                 myself.aura = buf.getInt();
-                Player.Status enemy = new Player.Status();
+                Battler.Status enemy = new Battler.Status();
                 enemy.life = buf.getInt();
                 enemy.aura = buf.getInt();
                 if (mListener != null) {
@@ -106,7 +107,7 @@ public class AuraBattleProtocol implements AsyncSocket.SocketListener {
         send(buf.array());
     }
 
-    public void sendResult(int turn_number, Player.Status myself, Player.Status enemy) {
+    public void sendResult(int turn_number, Battler.Status myself, Battler.Status enemy) {
         ByteBuffer buf = ByteBuffer.allocate(32);
         buf.put(RESULT_PACKET);
         buf.putInt(turn_number);
@@ -135,6 +136,6 @@ public class AuraBattleProtocol implements AsyncSocket.SocketListener {
 
     public interface Listener {
         public abstract void onRecvAction(int action);
-        public abstract void onRecvResult(int turn_number, Player.Status my_data, Player.Status enemy_data);
+        public abstract void onRecvResult(int turn_number, Battler.Status my_data, Battler.Status enemy_data);
     }
 }

@@ -1,6 +1,6 @@
 package com.example.hiroki.p2p_test.battle.controller;
 
-import com.example.hiroki.p2p_test.battle.character.Player;
+import com.example.hiroki.p2p_test.battle.character.Battler;
 import com.example.hiroki.p2p_test.battle.protocol.AuraBattleProtocol;
 import com.example.hiroki.p2p_test.p2p.AsyncSocket;
 
@@ -21,7 +21,7 @@ public class SocketController extends ControllerBase {
             }
 
             @Override
-            public void onRecvResult(int turn_number, Player.Status my_data, Player.Status enemy_data) {
+            public void onRecvResult(int turn_number, Battler.Status my_data, Battler.Status enemy_data) {
                 // 次
                 // 結果が正しいか調べる？
                 // 表示に反映
@@ -30,7 +30,7 @@ public class SocketController extends ControllerBase {
     }
 
     @Override
-    public void setResult(int turn_number, Player.Status my_data, Player.Status enemy_data) {
+    public void setResult(int turn_number, Battler.Status my_data, Battler.Status enemy_data) {
         super.setResult(turn_number, my_data, enemy_data);
         mABP.sendResult(turn_number, my_data, enemy_data);
     }
