@@ -8,11 +8,10 @@ import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
 
 abstract public class RivalBase {
     private String  mRivalTag;
-    private ConnectionStatus mStatus;
 
     RivalBase(String tag) {
         mRivalTag = tag;
-        mStatus = ConnectionStatus.DISCONNECTED;
+        cancelBattle();
     }
 
     /**
@@ -47,8 +46,7 @@ abstract public class RivalBase {
     /**
      * バトルのキャンセル
      */
-    public void cancelBattle() {
-    }
+    public abstract void cancelBattle();
 
     enum ConnectionStatus {
         DISCONNECTED,   // 未接続
@@ -57,54 +55,33 @@ abstract public class RivalBase {
         ALL_OK,         // 合意ができた
     }
 
-    ConnectionStatus getStatus() {
-        return mStatus;
-    }
-
-    void setStatus(ConnectionStatus st) {
-        if (mStatus == st) {
-            return;
-        }
-
-        // キャンセル判定
-        if (mStatus == ConnectionStatus.CONNECTED && st == ConnectionStatus.DISCONNECTED) {
-            if (mListener != null) {
-                mListener.onRecvCancel();
-            }
-        }
-        if (mStatus == ConnectionStatus.SEND_REQUEST && st != ConnectionStatus.ALL_OK) {
-            if (mListener != null) {
-                mListener.onRecvCancel();
-            }
-        }
-
-        mStatus = st;
-
-        // リスナーにも投げる
-        switch (mStatus) {
-            case DISCONNECTED:
-                break;
-            case CONNECTED:
-            case SEND_REQUEST:
-                // 何もしない
-                break;
-            case ALL_OK:
-                // 戦闘準備完了
-                if (mListener != null) {
-                    mListener.onReadyCompleted();
-                }
-                break;
-        }
-    }
+    abstract ConnectionStatus getStatus();
 
     public interface Listener {
         void onRecvCancel();
         void onReadyCompleted();
+
+        void test(String memo);
     }
     Listener mListener;
 
     public void setListener(Listener listener) {
         this.mListener = listener;
+    }
+
+    /**
+     * 対戦状態の変化を反映
+     * 申し込み状態が変化したときに適切によびだすこと
+     */
+    protected void dispatchBattleStatus() {
+        if (mListener != null) {
+            if (getStatus() == ConnectionStatus.ALL_OK) {
+                mListener.onReadyCompleted();
+            }
+            else {
+                mListener.onRecvCancel();
+            }
+        }
     }
 
     public abstract ControllerBase createController();

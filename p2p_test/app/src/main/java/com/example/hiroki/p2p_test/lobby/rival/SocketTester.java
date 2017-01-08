@@ -3,12 +3,14 @@ package com.example.hiroki.p2p_test.lobby.rival;
 import com.example.hiroki.p2p_test.battle.character.Battler;
 import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
 import com.example.hiroki.p2p_test.battle.controller.SocketController;
-import com.example.hiroki.p2p_test.lobby.p2p.AuraBattleProtocol;
 import com.example.hiroki.p2p_test.lobby.p2p.AsyncSocket;
+import com.example.hiroki.p2p_test.lobby.p2p.AuraBattleProtocol;
 import com.example.hiroki.p2p_test.lobby.p2p.ClientSocket;
 import com.example.hiroki.p2p_test.lobby.p2p.ServerSocket;
 
 import java.util.Random;
+
+import static com.example.hiroki.p2p_test.lobby.p2p.WifiSocketProtocol.SOCK_PORT;
 
 /**
  * Created by hiroki on 2016/11/07.
@@ -32,21 +34,25 @@ public class SocketTester extends RivalBase {
         if (getStatus() == ConnectionStatus.SEND_REQUEST) {
             return true;    // 接続中
         }
-        setStatus(ConnectionStatus.SEND_REQUEST);
 
         // 相手の接続待ちをするソケット
         ServerSocket ss = new ServerSocket();
-        ss.accept(12345, new ServerSocket.AcceptListener() {
+        ss.accept(SOCK_PORT, new ServerSocket.AcceptListener() {
             @Override
             public void onAccept(AsyncSocket as) {
                 mAcceptSocket = as;
-                setStatus(ConnectionStatus.ALL_OK);
+                dispatchBattleStatus();
+            }
+
+            @Override
+            public void test(String e) {
+
             }
         });
 
         // 仮想の相手がこっちに接続するためのソケット
         cs = new ClientSocket();
-        cs.connect("127.0.0.1", 12345, new ClientSocket.ConnectListener(){
+        cs.connect("127.0.0.1", SOCK_PORT, new ClientSocket.ConnectListener(){
             @Override
             public void onConnect(boolean result) {
                 // 内部にコマンドを送るプレイヤーを内包
@@ -65,6 +71,36 @@ public class SocketTester extends RivalBase {
         });
 
         return true;
+    }
+
+    @Override
+    public void cancelBattle() {
+        if (cs != null) {
+            cs.close();
+        }
+        if (mAcceptSocket != null) {
+            mAcceptSocket.close();
+        }
+        if (mABP!=null) {
+            mABP.onClose();
+        }
+        cs = null;
+        mAcceptSocket = null;
+        mABP = null;
+        dispatchBattleStatus();
+    }
+
+    @Override
+    ConnectionStatus getStatus() {
+        if (cs == null) {
+            return ConnectionStatus.DISCONNECTED;
+        }
+        else if (mAcceptSocket == null) {
+            return ConnectionStatus.SEND_REQUEST;
+        }
+        else {
+            return ConnectionStatus.ALL_OK;
+        }
     }
 
     @Override

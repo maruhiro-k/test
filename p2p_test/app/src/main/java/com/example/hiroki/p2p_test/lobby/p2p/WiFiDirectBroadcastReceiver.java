@@ -13,8 +13,12 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
+import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.Collection;
+
+import static com.example.hiroki.p2p_test.lobby.p2p.WifiSocketProtocol.SOCK_PORT;
 
 public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     WifiP2pManager mManager;
@@ -139,12 +143,18 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     protected void connectServerSocket() {
         Log.d("server", "connect start!");
         ss = new ServerSocket();
-        ss.accept(12345, new ServerSocket.AcceptListener() {
+        ss.accept(SOCK_PORT, new ServerSocket.AcceptListener() {
             @Override
             public void onAccept(AsyncSocket s) {
+                Toast.makeText(mContext, "onAccept:"+s, Toast.LENGTH_LONG).show();
                 if (mConnectListener != null) {
                     mConnectListener.onConnect(s);
                 }
+            }
+
+            @Override
+            public void test(String e) {
+                Toast.makeText(mContext, "onAccept:Error:"+e, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -152,11 +162,16 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     protected void connectClientSocket(String address) {
         Log.d("client", "connect start!");
         final ClientSocket cs = new ClientSocket();
-        cs.connect(address, 12345, new ClientSocket.ConnectListener() {
+        cs.connect(address, SOCK_PORT, new ClientSocket.ConnectListener() {
             @Override
             public void onConnect(boolean result) {
                 if (mConnectListener != null) {
-                    mConnectListener.onConnect(cs);
+                    if (result) {
+                        mConnectListener.onConnect(cs);
+                    }
+                    else {
+                        mConnectListener.onDisconnect();
+                    }
                 }
             }
         });
@@ -185,11 +200,17 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     }
 
     public void shakeHand(AsyncSocket target, String app_name, String player_name, final ShakeListener shakeListener) {
+        if (target == null) {
+            shakeListener.onRecv(null); // ソケットがないので拒絶扱い
+            return;
+        }
+
         WifiSocketProtocol wsp = new WifiSocketProtocol(target, app_name + "_REQ");
 
         wsp.setListener(new AsyncSocket.SocketListener() {
             @Override
             public void onSend(boolean result) {
+                Log.d("grea", "sendShakeResult: " + result);
                 if (! result) {
                     shakeListener.onRecv(null); // 失敗なら拒絶扱い
                 }
@@ -197,6 +218,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
             @Override
             public void onRecv(byte[] data) {
+                Log.d("grea", "recvShakeResult: " + data);
                 if (data.length == 1 && data[0] == 0) {
                     shakeListener.onRecv(null); // 0なら拒絶
                 }

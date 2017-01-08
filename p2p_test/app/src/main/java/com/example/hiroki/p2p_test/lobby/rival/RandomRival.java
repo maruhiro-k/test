@@ -11,6 +11,8 @@ import com.example.hiroki.p2p_test.battle.controller.RandomController;
  */
 
 public class RandomRival extends RivalBase {
+    private ConnectionStatus mStatus;
+
     public RandomRival() {
         super("ランダムさん");
     }
@@ -23,7 +25,7 @@ public class RandomRival extends RivalBase {
         if (getStatus() == ConnectionStatus.ALL_OK) {
             return true;    // 合意済み
         }
-        setStatus(ConnectionStatus.SEND_REQUEST);
+        mStatus = ConnectionStatus.SEND_REQUEST;
 
         new AsyncTask<Void, Void, Void>() {
             @Override
@@ -34,11 +36,23 @@ public class RandomRival extends RivalBase {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                setStatus(ConnectionStatus.ALL_OK);
+                mStatus = ConnectionStatus.ALL_OK;
+                dispatchBattleStatus();
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         return true;
+    }
+
+    @Override
+    public void cancelBattle() {
+        mStatus = ConnectionStatus.DISCONNECTED;
+        dispatchBattleStatus();
+    }
+
+    @Override
+    ConnectionStatus getStatus() {
+        return mStatus;
     }
 
     @Override

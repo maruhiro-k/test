@@ -9,7 +9,7 @@ import java.net.Socket;
 import java.util.Arrays;
 
 public class AsyncSocket {
-    protected Socket s;
+    public Socket s;
     private SocketListener mListener;
 
     AsyncSocket(Socket s) {
@@ -37,6 +37,9 @@ public class AsyncSocket {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
+                    if (s == null) {
+                        return null;
+                    }
                     InputStream in = s.getInputStream();
                     byte[] buf = new byte[1024];
                     int sz;
@@ -77,13 +80,14 @@ public class AsyncSocket {
             @Override
             protected Boolean doInBackground(byte[]... params) {
                 try {
+                    if (s == null) {
+                        return Boolean.FALSE;
+                    }
                     OutputStream out = s.getOutputStream();
-                    //mLogger.add("call write: " + params[0][0] + ", " + params[0].length);
                     out.write(params[0]);
                     return Boolean.TRUE;
                 }
                 catch (IOException e) {
-                    //mLogger.add("send error: " + e.getMessage());
                     return Boolean.FALSE;
                 }
             }

@@ -7,8 +7,9 @@ import java.util.zip.CRC32;
  * Created by hiroki on 2016/11/13.
  */
 
-class WifiSocketProtocol implements AsyncSocket.SocketListener {
+public class WifiSocketProtocol implements AsyncSocket.SocketListener {
     static private final String LIB_MAGIC = "WSP1"; // このライブラリのプロトコルであることを宣言
+    static public final int SOCK_PORT = 12344;     // 接続ポート
     private final String mAppMagic;                     // アプリの識別用文字列
     private final AsyncSocket mSock;
     private AsyncSocket.SocketListener mListener;
@@ -16,6 +17,9 @@ class WifiSocketProtocol implements AsyncSocket.SocketListener {
     WifiSocketProtocol(AsyncSocket s, String appMagic) {
         mSock = s;
         mAppMagic = appMagic;
+        if (mSock == null) {
+            mSock.init(this);
+        }
         mSock.init(this);
     }
 

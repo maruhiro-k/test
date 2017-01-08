@@ -15,6 +15,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.hiroki.p2p_test.lobby.p2p.WiFiDirectBroadcastReceiver;
 import com.example.hiroki.p2p_test.lobby.rival.RandomRival;
@@ -187,6 +188,10 @@ public class LobbyActivity extends AppCompatActivity {
                     // つながったら対戦開始
                     stopMatching();
                     startBattle(rival);
+                }
+                @Override
+                public void test(String memo) {
+                    Toast.makeText(LobbyActivity.this, "shakeHand:"+memo, Toast.LENGTH_LONG).show();
                 }
             });
 

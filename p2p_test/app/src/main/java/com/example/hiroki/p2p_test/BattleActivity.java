@@ -154,4 +154,14 @@ public class BattleActivity extends AppCompatActivity {
                 })
                 .show();
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // 敵を取り出す
+        MyApp appState = (MyApp)getApplicationContext();
+        RivalBase rival = appState.getRival();
+        rival.cancelBattle();
+    }
 }
