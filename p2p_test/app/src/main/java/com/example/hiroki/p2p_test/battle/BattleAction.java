@@ -1,4 +1,4 @@
-package com.example.hiroki.p2p_test.battle.protocol;
+package com.example.hiroki.p2p_test.battle;
 
 /**
  * Created by hiroki on 2016/03/21.

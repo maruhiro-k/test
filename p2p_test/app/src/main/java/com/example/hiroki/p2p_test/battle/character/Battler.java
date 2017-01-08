@@ -3,21 +3,21 @@ package com.example.hiroki.p2p_test.battle.character;
 import android.util.Log;
 
 import com.example.hiroki.p2p_test.battle.controller.ControllerBase;
-import com.example.hiroki.p2p_test.battle.protocol.BattleAction;
+import com.example.hiroki.p2p_test.battle.BattleAction;
 
 /**
  * Created by hiroki on 2016/03/21.
  */
-public class Player implements ControllerBase.Listener {
-    String mName;
-    Status mStatus;
-    ControllerBase mCtrl;
+public class Battler implements ControllerBase.Listener {
+    private String mName;
+    private Status mStatus;
+    private ControllerBase mCtrl;
 //    Bitmap charImage[];
 
-    Listener mListener;
-    int mAction;
+    private Listener mListener;
+    private int mAction;
 
-    public Player(String name, ControllerBase ctrl) {
+    public Battler(String name, ControllerBase ctrl) {
         this.mName = name;
         this.mCtrl = ctrl;
         mCtrl.setListener(this);
@@ -25,7 +25,7 @@ public class Player implements ControllerBase.Listener {
         mAction = BattleAction.NO_ACTION;
     }
 
-    public void setListener(Player.Listener listener) {
+    public void setListener(Battler.Listener listener) {
         this.mListener = listener;
     }
 
@@ -110,7 +110,7 @@ public class Player implements ControllerBase.Listener {
         mCtrl.notifyDecideAction(act);
     }
 
-    public void notifyResult(int turn_number, Player.Status enemy_data) {
+    public void notifyResult(int turn_number, Battler.Status enemy_data) {
         if (enemy_data.life == 0) {
             // win
         }
@@ -152,6 +152,6 @@ public class Player implements ControllerBase.Listener {
 
     // 行動決定をコールバック
     public interface Listener{
-        public void action(Player player, int act);
+        void action(Battler battler, int act);
     }
 }

@@ -1,24 +1,25 @@
 package com.example.hiroki.p2p_test.battle;
 
 import com.example.hiroki.p2p_test.battle.character.Aura;
-import com.example.hiroki.p2p_test.battle.character.Player;
-import com.example.hiroki.p2p_test.battle.protocol.BattleAction;
-import com.example.hiroki.p2p_test.util.Logger;
+import com.example.hiroki.p2p_test.battle.character.Battler;
 
 import java.util.Timer;
 import java.util.TimerTask;
 import android.os.Handler;
-import android.widget.TextView;
 
 /**
  * Created by hiroki on 2016/03/21.
  */
-public class BattleEngine implements Player.Listener {
-    int mTurn = 0;
-    Player mMyPlayer;
-    Player mEnemyPlayer;
-    Aura mMyAura;
-    Aura mEnemyAura;
+public class BattleEngine implements Battler.Listener {
+    private int mTurn = 0;
+    private Battler mMyBattler;
+    private Battler mEnemyBattler;
+    private Aura mMyAura;
+    private Aura mEnemyAura;
+
+    public int getTurn() {
+        return mTurn;
+    }
 
     private enum BattleScene {
         kOpen,
@@ -28,21 +29,32 @@ public class BattleEngine implements Player.Listener {
         kFinish,
         kClose,
     }
-    BattleScene mScene = BattleScene.kOpen;
-    Timer mTimer;
-    long mStartMs = 0;
 
+    static public final int START_BATTLE    = 0x8000;   // 戦闘開始
+    static public final int START_TURN      = 0x8001;   // ターン開始
+    static public final int END_BATTLE      = 0x8002;   // 戦闘終了
+    static public final int VANISHED        = 0x8003;   // 相殺
+    static public final int DAMAGED         = 0x8004;   // 被弾
+    static public final int NO_DAMAGED      = 0x8005;   // 被弾なし
+    static public final int GIVEUP          = 0x8006;   // 降参
+    static public final int CHARGED         = 0x8007;   // オーラ変化
 
-    public BattleEngine(Player my_player, Player enemy_player) {
-        mMyPlayer = my_player;
-        mEnemyPlayer = enemy_player;
-        mMyPlayer.setListener(this);
-        mEnemyPlayer.setListener(this);
+    private BattleScene mScene;
+    private Timer mTimer;
+    private long mStartMs = 0;
+
+    public BattleEngine(Battler my_battler, Battler enemy_battler) {
+        mMyBattler = my_battler;
+        mEnemyBattler = enemy_battler;
+        mMyBattler.setListener(this);
+        mEnemyBattler.setListener(this);
+        mScene = BattleScene.kOpen;
     }
 
     public void start() {
         stop(); // いったん止める
 
+        mListener.onAct(null, START_BATTLE);
         start_hello();  // 挨拶から
 
         // タイマー開始
@@ -83,54 +95,52 @@ public class BattleEngine implements Player.Listener {
             case kAction:
                 double sec = getElapsedSec();
 
-                if (sec >= 1) {
+                if (sec >= 0.5) {
                     if (isActive(mMyAura) && isActive(mEnemyAura)) {
                         // 相殺
                         mMyAura.deactive();
                         mEnemyAura.deactive();
-                        echo("相殺！");
+                        mListener.onAct(null, VANISHED);
                     }
                 }
 
-                if (sec >= 2) {
+                if (sec >= 1) {
                     if (isActive(mMyAura) && !isActive(mEnemyAura)) {
                         // 相手にヒット
-                        if (mEnemyPlayer.getAction() != BattleAction.DEFENCE || mMyAura.isSuper()) {
-                            mEnemyPlayer.damage(+1);
-                            echo("hit E.Life=" + mEnemyPlayer.getStatus().life);
+                        if (mEnemyBattler.getAction() != BattleAction.DEFENCE || mMyAura.isSuper()) {
+                            mEnemyBattler.damage(+1);
+                            mListener.onAct(mEnemyBattler, DAMAGED);
                         }
                         else {
-                            echo("guard E.Life=" + mEnemyPlayer.getStatus().life);
+                            mListener.onAct(mEnemyBattler, NO_DAMAGED);
                         }
                         mMyAura.deactive();
                     } else if (!isActive(mMyAura) && isActive(mEnemyAura)) {
                         // 自分にヒット
-                        if (mMyPlayer.getAction() != BattleAction.DEFENCE || mEnemyAura.isSuper()) {
-                            mMyPlayer.damage(+1);
-                            echo("hit M.Life=" + mMyPlayer.getStatus().life);
+                        if (mMyBattler.getAction() != BattleAction.DEFENCE || mEnemyAura.isSuper()) {
+                            mMyBattler.damage(+1);
+                            mListener.onAct(mMyBattler, DAMAGED);
                         }
                         else {
-                            echo("guard M.Life=" + mMyPlayer.getStatus().life);
+                            mListener.onAct(mMyBattler, NO_DAMAGED);
                         }
                         mEnemyAura.deactive();
                     }
                 }
 
-                if (sec >= 3) {
+                if (sec >= 1.5) {
                     // オーラ増減
                     if (mMyAura != null) {
-                        mMyPlayer.changeAura(-mMyAura.getPower());
-                        echo("down M.Aura=" + mMyPlayer.getStatus().aura);
-                    } else if (mMyPlayer.getAction() == BattleAction.CHARGE) {
-                        mMyPlayer.changeAura(+1);
-                        echo("up M.Aura=" + mMyPlayer.getStatus().aura);
+                        mMyBattler.changeAura(-mMyAura.getPower());
+                    } else if (mMyBattler.getAction() == BattleAction.CHARGE) {
+                        mMyBattler.changeAura(+1);
+                        mListener.onAct(mMyBattler, CHARGED);
                     }
                     if (mEnemyAura != null) {
-                        mEnemyPlayer.changeAura(-mEnemyAura.getPower());
-                        echo("down E.Aura=" + mEnemyPlayer.getStatus().aura);
-                    } else if (mEnemyPlayer.getAction() == BattleAction.CHARGE) {
-                        mEnemyPlayer.changeAura(+1);
-                        echo("up E.Aura=" + mEnemyPlayer.getStatus().aura);
+                        mEnemyBattler.changeAura(-mEnemyAura.getPower());
+                    } else if (mEnemyBattler.getAction() == BattleAction.CHARGE) {
+                        mEnemyBattler.changeAura(+1);
+                        mListener.onAct(mEnemyBattler, CHARGED);
                     }
 
                     // アクション終了
@@ -138,7 +148,13 @@ public class BattleEngine implements Player.Listener {
                 }
                 break;
             case kFinish:
-                if (getElapsedSec() >= 1) {
+                if (getElapsedSec() >= 0.5) {
+                    if (mTurn > 0) {
+                        mListener.onAct(null, END_BATTLE);
+                        mTurn = 0;
+                    }
+                }
+                if (getElapsedSec() >= 3) {
                     close_battle();
                 }
                 break;
@@ -147,8 +163,8 @@ public class BattleEngine implements Player.Listener {
                 break;
         }
 
-        mMyPlayer.update();
-        mEnemyPlayer.update();
+        mMyBattler.update();
+        mEnemyBattler.update();
         if (mMyAura!=null) {
             mMyAura.update();
         }
@@ -157,43 +173,45 @@ public class BattleEngine implements Player.Listener {
         }
     }
 
-    public void action(Player player, int act) {
-        if (player == mMyPlayer) {
-            echo("my action="+act);
-            mEnemyPlayer.notifyEnemyAction(act);
+    public void action(Battler battler, int act) {
+        boolean isDecided = false;
+        if (battler == mMyBattler) {
+            isDecided = (mEnemyBattler.getAction() != BattleAction.NO_ACTION);
+            mListener.onAct(mMyBattler, act);
+            mEnemyBattler.notifyEnemyAction(act);
         }
-        else if (player == mEnemyPlayer) {
-            echo("enemy action="+act);
-            mMyPlayer.notifyEnemyAction(act);
+        else if (battler == mEnemyBattler) {
+            isDecided = (mMyBattler.getAction() != BattleAction.NO_ACTION);
+            mMyBattler.notifyEnemyAction(act);
         }
 
-        if (mMyPlayer.getAction() != BattleAction.NO_ACTION && mEnemyPlayer.getAction() != BattleAction.NO_ACTION) {
+        if (isDecided) {
+            mListener.onAct(mEnemyBattler, mEnemyBattler.getAction());
             start_action();
         }
     }
 
-    public void start_hello() {
-        mMyPlayer.hello();
-        mEnemyPlayer.hello();
+    private void start_hello() {
+        mMyBattler.hello();
+        mEnemyBattler.hello();
         mScene = BattleScene.kHello;
         mTurn = 0;
         mStartMs = System.currentTimeMillis();
     }
 
-    public void start_action() {
-        mMyAura = mMyPlayer.doAction();
-        mEnemyAura = mEnemyPlayer.doAction();
+    private void start_action() {
+        mMyAura = mMyBattler.doAction();
+        mEnemyAura = mEnemyBattler.doAction();
         mScene = BattleScene.kAction;
         mStartMs = System.currentTimeMillis();
-        echo("M=" + mMyPlayer.getAction() + (mMyAura!=null ? "+"+mMyAura.getPower() : "") + " E=" + mEnemyPlayer.getAction() + (mEnemyAura!=null ? "+"+mEnemyAura.getPower() : ""));
     }
 
     private void end_turn() {
         // 結果共有
-        Player.Status stE = mEnemyPlayer.getStatus();
-        Player.Status stM = mMyPlayer.getStatus();
-        mMyPlayer.notifyResult(mTurn, stE);
-        mEnemyPlayer.notifyResult(mTurn, stM);
+        Battler.Status stE = mEnemyBattler.getStatus();
+        Battler.Status stM = mMyBattler.getStatus();
+        mMyBattler.notifyResult(mTurn, stE);
+        mEnemyBattler.notifyResult(mTurn, stM);
 
         // オーラ消す
         mMyAura = null;
@@ -202,21 +220,21 @@ public class BattleEngine implements Player.Listener {
         if (stM.life > 0 && stE.life > 0) {
             // 次のターンへ
             mTurn++;
-            echo("start turn: "+mTurn);
-            mMyPlayer.idling();
-            mEnemyPlayer.idling();
+            mListener.onAct(null, START_TURN);
+            mMyBattler.idling();
+            mEnemyBattler.idling();
             mScene = BattleScene.kIdling;
         }
         else {
             // 決着
             if (stM.life <= 0) {
-                echo("finish battle, You Lose!");
+                mListener.onAct(mMyBattler, GIVEUP);
             }
             else {
-                echo("finish battle, You Win!");
+                mListener.onAct(mEnemyBattler, GIVEUP);
             }
-            mMyPlayer.finish();
-            mEnemyPlayer.finish();
+            mMyBattler.finish();
+            mEnemyBattler.finish();
             mScene = BattleScene.kFinish;
         }
 
@@ -238,24 +256,13 @@ public class BattleEngine implements Player.Listener {
         return (aura != null && aura.isActive());
     }
 
-    public interface OnEndListener {
-        public abstract void onEnd();
+    public interface Listener {
+        void onAct(Battler battler, int action);
+        void onEnd();
     }
-    OnEndListener mListener;
+    private Listener mListener;
 
-    public void setOnEndListener(OnEndListener L) {
-        mListener = L;
-    }
-
-    // デバッグ用
-    private Logger mLogger;
-    public void setLogView(TextView v) {
-        mLogger = new Logger("BattleEngine", v);
-        echo("log start!");
-    }
-    private void echo(String log) {
-        if (mLogger != null) {
-            mLogger.add(log);
-        }
+    public void setListener(Listener listener) {
+        mListener = listener;
     }
 }

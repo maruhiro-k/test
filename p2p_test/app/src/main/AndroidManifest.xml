@@ -28,7 +28,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".HomeActivity" />
         <!--
              ATTENTION: This was auto-generated to add Google Play services to your project for
              App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -38,7 +37,6 @@
             android:value="@integer/google_play_services_version" />
 
         <activity android:name=".BattleActivity" />
-        <activity android:name=".SockActivity" />
         <activity android:name=".LobbyActivity"></activity>
     </application>
 

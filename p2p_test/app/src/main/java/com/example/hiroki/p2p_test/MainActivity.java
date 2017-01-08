@@ -14,8 +14,6 @@ import android.widget.EditText;
 
 public class MainActivity extends AppCompatActivity {
 
-    AlertDialog dlg;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,10 +94,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d("test", "name = " + name);
 
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-        if (pref.getString("name", "") != name) {
+        if (pref.getString("name", "").compareTo(name) != 0) {
             SharedPreferences.Editor editor = pref.edit();
             editor.putString("name", name);
-            editor.commit();
+            editor.apply();
         }
 
         Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);

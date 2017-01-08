@@ -1,4 +1,4 @@
-package com.example.hiroki.p2p_test.p2p;
+package com.example.hiroki.p2p_test.lobby.p2p;
 
 import android.os.AsyncTask;
 
@@ -18,11 +18,9 @@ public class ClientSocket extends AsyncSocket {
             protected Boolean doInBackground(InetSocketAddress[] params) {
                 try {
                     s.bind(null);
-                    //mLogger.add("call connect");
                     s.connect(params[0], 10000);
                     return Boolean.TRUE;
                 } catch (IOException e) {
-                    //mLogger.add("connect error: " + e.getMessage());
                     return Boolean.FALSE;
                 }
             }

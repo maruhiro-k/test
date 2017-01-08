@@ -1,26 +1,22 @@
-package com.example.hiroki.p2p_test.p2p;
+package com.example.hiroki.p2p_test.lobby.p2p;
 
 import android.os.AsyncTask;
-
-import com.example.hiroki.p2p_test.util.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.Arrays;
 
 public class AsyncSocket {
-    Socket s;
-    SocketListener mListener;
-    Logger mLogger;
+    public Socket s;
+    private SocketListener mListener;
 
     AsyncSocket(Socket s) {
         this.s = s;
     }
 
-    public boolean init(SocketListener listener) {
+    boolean init(SocketListener listener) {
         if (!isConnected()) {
             return false;
         }
@@ -41,6 +37,9 @@ public class AsyncSocket {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
+                    if (s == null) {
+                        return null;
+                    }
                     InputStream in = s.getInputStream();
                     byte[] buf = new byte[1024];
                     int sz;
@@ -70,7 +69,7 @@ public class AsyncSocket {
         return true;
     }
 
-    public void send(byte[] data) {
+    void send(byte[] data) {
         if (!isConnected()) {
             onSend(false);
             return;
@@ -81,13 +80,14 @@ public class AsyncSocket {
             @Override
             protected Boolean doInBackground(byte[]... params) {
                 try {
+                    if (s == null) {
+                        return Boolean.FALSE;
+                    }
                     OutputStream out = s.getOutputStream();
-                    //mLogger.add("call write: " + params[0][0] + ", " + params[0].length);
                     out.write(params[0]);
                     return Boolean.TRUE;
                 }
                 catch (IOException e) {
-                    //mLogger.add("send error: " + e.getMessage());
                     return Boolean.FALSE;
                 }
             }
@@ -120,13 +120,7 @@ public class AsyncSocket {
         else if (s.isClosed()) {
             return false;
         }
-        else {
-            return true;
-        }
-    }
-
-    public void addLogger(Logger logger) {
-        mLogger = logger;
+        return true;
     }
 
     private void onSend(boolean result) {
@@ -148,7 +142,7 @@ public class AsyncSocket {
         }
     }
 
-    public interface SocketListener {
+    interface SocketListener {
         void onSend(boolean result);
         void onRecv(byte[] data);
         void onClose();
