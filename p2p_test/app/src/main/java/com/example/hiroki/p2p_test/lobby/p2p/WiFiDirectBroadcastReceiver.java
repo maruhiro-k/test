@@ -178,6 +178,10 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     }
 
     public void disconnect() {
+        if (ss != null) {
+            ss.close();
+            ss = null;
+        }
         mManager.cancelConnect(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {

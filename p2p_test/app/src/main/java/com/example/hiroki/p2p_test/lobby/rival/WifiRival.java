@@ -33,7 +33,6 @@ public class WifiRival extends RivalBase {
 
     @Override
     public boolean requestBattle(final String name) {
-        mListener.test("requestBattle:"+name+"+"+getStatus());
         if (getStatus() == ConnectionStatus.DISCONNECTED) {
             // ソケットがまだつながっていないならつなぐ
             mReceiver.connect(mDevice, new WiFiDirectBroadcastReceiver.ConnectListener() {

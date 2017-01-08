@@ -2,12 +2,10 @@ package com.example.hiroki.p2p_test.battle;
 
 import com.example.hiroki.p2p_test.battle.character.Aura;
 import com.example.hiroki.p2p_test.battle.character.Battler;
-import com.example.hiroki.p2p_test.util.Logger;
 
 import java.util.Timer;
 import java.util.TimerTask;
 import android.os.Handler;
-import android.widget.TextView;
 
 /**
  * Created by hiroki on 2016/03/21.
@@ -19,6 +17,10 @@ public class BattleEngine implements Battler.Listener {
     private Aura mMyAura;
     private Aura mEnemyAura;
 
+    public int getTurn() {
+        return mTurn;
+    }
+
     private enum BattleScene {
         kOpen,
         kHello,
@@ -27,6 +29,15 @@ public class BattleEngine implements Battler.Listener {
         kFinish,
         kClose,
     }
+
+    static public final int START_BATTLE    = 0x8000;   // 戦闘開始
+    static public final int START_TURN      = 0x8001;   // ターン開始
+    static public final int END_BATTLE      = 0x8002;   // 戦闘終了
+    static public final int VANISHED        = 0x8003;   // 相殺
+    static public final int DAMAGED         = 0x8004;   // 被弾
+    static public final int NO_DAMAGED      = 0x8005;   // 被弾なし
+    static public final int GIVEUP          = 0x8006;   // 降参
+    static public final int CHARGED         = 0x8007;   // オーラ変化
 
     private BattleScene mScene;
     private Timer mTimer;
@@ -43,6 +54,7 @@ public class BattleEngine implements Battler.Listener {
     public void start() {
         stop(); // いったん止める
 
+        mListener.onAct(null, START_BATTLE);
         start_hello();  // 挨拶から
 
         // タイマー開始
@@ -83,54 +95,52 @@ public class BattleEngine implements Battler.Listener {
             case kAction:
                 double sec = getElapsedSec();
 
-                if (sec >= 1) {
+                if (sec >= 0.5) {
                     if (isActive(mMyAura) && isActive(mEnemyAura)) {
                         // 相殺
                         mMyAura.deactive();
                         mEnemyAura.deactive();
-                        echo("相殺！");
+                        mListener.onAct(null, VANISHED);
                     }
                 }
 
-                if (sec >= 2) {
+                if (sec >= 1) {
                     if (isActive(mMyAura) && !isActive(mEnemyAura)) {
                         // 相手にヒット
                         if (mEnemyBattler.getAction() != BattleAction.DEFENCE || mMyAura.isSuper()) {
                             mEnemyBattler.damage(+1);
-                            echo("hit E.Life=" + mEnemyBattler.getStatus().life);
+                            mListener.onAct(mEnemyBattler, DAMAGED);
                         }
                         else {
-                            echo("guard E.Life=" + mEnemyBattler.getStatus().life);
+                            mListener.onAct(mEnemyBattler, NO_DAMAGED);
                         }
                         mMyAura.deactive();
                     } else if (!isActive(mMyAura) && isActive(mEnemyAura)) {
                         // 自分にヒット
                         if (mMyBattler.getAction() != BattleAction.DEFENCE || mEnemyAura.isSuper()) {
                             mMyBattler.damage(+1);
-                            echo("hit M.Life=" + mMyBattler.getStatus().life);
+                            mListener.onAct(mMyBattler, DAMAGED);
                         }
                         else {
-                            echo("guard M.Life=" + mMyBattler.getStatus().life);
+                            mListener.onAct(mMyBattler, NO_DAMAGED);
                         }
                         mEnemyAura.deactive();
                     }
                 }
 
-                if (sec >= 3) {
+                if (sec >= 1.5) {
                     // オーラ増減
                     if (mMyAura != null) {
                         mMyBattler.changeAura(-mMyAura.getPower());
-                        echo("down M.Aura=" + mMyBattler.getStatus().aura);
                     } else if (mMyBattler.getAction() == BattleAction.CHARGE) {
                         mMyBattler.changeAura(+1);
-                        echo("up M.Aura=" + mMyBattler.getStatus().aura);
+                        mListener.onAct(mMyBattler, CHARGED);
                     }
                     if (mEnemyAura != null) {
                         mEnemyBattler.changeAura(-mEnemyAura.getPower());
-                        echo("down E.Aura=" + mEnemyBattler.getStatus().aura);
                     } else if (mEnemyBattler.getAction() == BattleAction.CHARGE) {
                         mEnemyBattler.changeAura(+1);
-                        echo("up E.Aura=" + mEnemyBattler.getStatus().aura);
+                        mListener.onAct(mEnemyBattler, CHARGED);
                     }
 
                     // アクション終了
@@ -138,7 +148,13 @@ public class BattleEngine implements Battler.Listener {
                 }
                 break;
             case kFinish:
-                if (getElapsedSec() >= 1) {
+                if (getElapsedSec() >= 0.5) {
+                    if (mTurn > 0) {
+                        mListener.onAct(null, END_BATTLE);
+                        mTurn = 0;
+                    }
+                }
+                if (getElapsedSec() >= 3) {
                     close_battle();
                 }
                 break;
@@ -158,16 +174,19 @@ public class BattleEngine implements Battler.Listener {
     }
 
     public void action(Battler battler, int act) {
+        boolean isDecided = false;
         if (battler == mMyBattler) {
-            echo("my action="+act);
+            isDecided = (mEnemyBattler.getAction() != BattleAction.NO_ACTION);
+            mListener.onAct(mMyBattler, act);
             mEnemyBattler.notifyEnemyAction(act);
         }
         else if (battler == mEnemyBattler) {
-            echo("enemy action="+act);
+            isDecided = (mMyBattler.getAction() != BattleAction.NO_ACTION);
             mMyBattler.notifyEnemyAction(act);
         }
 
-        if (mMyBattler.getAction() != BattleAction.NO_ACTION && mEnemyBattler.getAction() != BattleAction.NO_ACTION) {
+        if (isDecided) {
+            mListener.onAct(mEnemyBattler, mEnemyBattler.getAction());
             start_action();
         }
     }
@@ -185,7 +204,6 @@ public class BattleEngine implements Battler.Listener {
         mEnemyAura = mEnemyBattler.doAction();
         mScene = BattleScene.kAction;
         mStartMs = System.currentTimeMillis();
-        echo("M=" + mMyBattler.getAction() + (mMyAura!=null ? "+"+mMyAura.getPower() : "") + " E=" + mEnemyBattler.getAction() + (mEnemyAura!=null ? "+"+mEnemyAura.getPower() : ""));
     }
 
     private void end_turn() {
@@ -202,7 +220,7 @@ public class BattleEngine implements Battler.Listener {
         if (stM.life > 0 && stE.life > 0) {
             // 次のターンへ
             mTurn++;
-            echo("start turn: "+mTurn);
+            mListener.onAct(null, START_TURN);
             mMyBattler.idling();
             mEnemyBattler.idling();
             mScene = BattleScene.kIdling;
@@ -210,10 +228,10 @@ public class BattleEngine implements Battler.Listener {
         else {
             // 決着
             if (stM.life <= 0) {
-                echo("finish battle, You Lose!");
+                mListener.onAct(mMyBattler, GIVEUP);
             }
             else {
-                echo("finish battle, You Win!");
+                mListener.onAct(mEnemyBattler, GIVEUP);
             }
             mMyBattler.finish();
             mEnemyBattler.finish();
@@ -238,24 +256,13 @@ public class BattleEngine implements Battler.Listener {
         return (aura != null && aura.isActive());
     }
 
-    public interface OnEndListener {
+    public interface Listener {
+        void onAct(Battler battler, int action);
         void onEnd();
     }
-    private OnEndListener mListener;
+    private Listener mListener;
 
-    public void setOnEndListener(OnEndListener L) {
-        mListener = L;
-    }
-
-    // デバッグ用
-    private Logger mLogger;
-    public void setLogView(TextView v) {
-        mLogger = new Logger("BattleEngine", v);
-        echo("log start!");
-    }
-    private void echo(String log) {
-        if (mLogger != null) {
-            mLogger.add(log);
-        }
+    public void setListener(Listener listener) {
+        mListener = listener;
     }
 }

@@ -29,9 +29,11 @@ public abstract class ControllerBase {
 
     // 自分の行動
     protected void action(int act) {
-        lock(true);
-        if (mListener != null) {
-            mListener.action(this, act);
+        if (! mLock) {
+            lock(true);
+            if (mListener != null) {
+                mListener.action(this, act);
+            }
         }
     }
 
